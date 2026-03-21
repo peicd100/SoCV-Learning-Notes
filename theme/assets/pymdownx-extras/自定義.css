@@ -3642,47 +3642,31 @@ html.peicd-image-viewer-open body {
 }
 
 .peicd-mobile-toc-toggle {
-  align-items: center;
   appearance: none;
-  background: rgba(12, 18, 29, 0.9);
-  border: 1px solid rgba(114, 227, 253, 0.24);
-  border-radius: 999px;
-  box-shadow: 0 0.9rem 2rem rgba(6, 10, 18, 0.22);
-  color: var(--md-primary-fg-color);
+  background: none;
+  border: 0;
+  color: inherit;
   cursor: pointer;
-  display: inline-flex;
+  display: none;
   font: inherit;
-  font-size: 0.72rem;
-  font-weight: 700;
-  gap: 0.5rem;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  padding: 0.7rem 0.96rem;
-  position: fixed;
-  right: 0.85rem;
-  bottom: max(0.95rem, env(safe-area-inset-bottom));
-  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
-  z-index: 38;
+  line-height: 0;
+  margin: 0;
+  transition: color 0.18s ease;
 }
 
-.peicd-mobile-toc-toggle::before {
-  background: currentColor;
-  border-radius: 999px;
-  box-shadow: 0 0 0 0.18rem rgba(114, 227, 253, 0.1);
-  content: "";
+.peicd-mobile-toc-toggle svg {
   display: block;
-  height: 0.4rem;
-  width: 0.4rem;
+  fill: currentColor;
+  height: 1.2rem;
+  width: 1.2rem;
 }
 
 .peicd-mobile-toc-toggle:hover {
-  background: rgba(12, 18, 29, 0.96);
-  border-color: rgba(114, 227, 253, 0.34);
+  color: var(--md-accent-fg-color);
 }
 
 .peicd-mobile-toc-toggle[aria-expanded="true"] {
-  background: rgba(114, 227, 253, 0.12);
-  border-color: rgba(114, 227, 253, 0.34);
+  color: var(--md-accent-fg-color);
 }
 
 .peicd-mobile-toc-toggle[hidden] {
@@ -3703,27 +3687,17 @@ html.peicd-image-viewer-open body {
   display: none !important;
 }
 
-[data-md-color-scheme="default"] .peicd-mobile-toc-toggle,
-[data-md-color-scheme="light"] .peicd-mobile-toc-toggle {
-  background: rgba(248, 250, 252, 0.92);
-  border-color: rgba(19, 73, 97, 0.12);
-  box-shadow: 0 0.7rem 1.7rem rgba(19, 73, 97, 0.09);
-  color: rgba(9, 42, 58, 0.95);
-}
-
-[data-md-color-scheme="default"] .peicd-mobile-toc-toggle:hover,
-[data-md-color-scheme="light"] .peicd-mobile-toc-toggle:hover {
-  background: rgba(248, 250, 252, 0.98);
-  border-color: rgba(19, 73, 97, 0.18);
-}
-
-[data-md-color-scheme="default"] .peicd-mobile-toc-toggle[aria-expanded="true"],
-[data-md-color-scheme="light"] .peicd-mobile-toc-toggle[aria-expanded="true"] {
-  background: rgba(114, 227, 253, 0.1);
-  border-color: rgba(19, 73, 97, 0.14);
+[data-md-toggle="search"]:checked ~ .md-header .peicd-mobile-toc-toggle {
+  display: none !important;
 }
 
 @media (max-width: 59.999em) {
+  .md-header .peicd-mobile-toc-toggle:not([hidden]) {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+  }
+
   html.peicd-mobile-toc-open,
   html.peicd-mobile-toc-open body {
     overflow: hidden;
