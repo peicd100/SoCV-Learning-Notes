@@ -1,0 +1,1086 @@
+<!--
+把整段放進你的 tts.md（snippets）即可
+
+你指定「用這份程式碼改」+ 新需求：
+✅ 亮色模式：語音清單改成正常白底，只有目前使用中的項目(active)變暗
+✅ 暗色模式（dracula）不動
+✅ 保留你這份程式碼的其他行為（header 喇叭、EN/ZH 分開選、反白翻譯/播放、點旁邊關閉但點翻譯框內不關閉…）
+-->
+
+<style>
+/* =========================
+   句子 TTS：文字 + 按鈕（避免 st/nd 跑位）
+   ========================= */
+.tts-wrap{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;                 /* ✅ 可改：按鈕與文字距離 */
+}
+.tts{ display: inline; }
+
+/* =========================
+   通用播放按鈕（圖形）
+   ========================= */
+.tts-btn{
+  background: transparent;
+  border: 0;
+  font: inherit;
+
+  width: 44px;               /* ✅ 可改：點擊區寬 */
+  height: 44px;              /* ✅ 可改：點擊區高 */
+  padding: 0;
+
+  cursor: pointer;
+  line-height: 1;
+
+  display: inline-grid;
+  place-items: center;
+  position: relative;
+
+  color: var(--md-primary-fg-color, currentColor);
+  touch-action: manipulation;
+}
+.tts-btn:hover{
+  color: var(--md-accent-fg-color, var(--md-primary-fg-color, currentColor));
+}
+.tts-btn[aria-pressed="true"]{
+  color: var(--md-accent-fg-color, var(--md-primary-fg-color, currentColor));
+  opacity: 0.85;             /* ✅ 可改：播放中提示 */
+}
+.tts-btn:focus-visible{
+  outline: 2px solid var(--md-accent-fg-color, currentColor);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+/* 播放：三角形 */
+.tts-btn[data-state="play"]::before{
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 9px 0 9px 14px;   /* ✅ 可改：三角形比例 */
+  border-color: transparent transparent transparent currentColor;
+  transform: translateX(1px);
+}
+/* 停止：方塊 */
+.tts-btn[data-state="stop"]::before{
+  content: "";
+  display: block;
+  width: 16px;                    /* ✅ 可改：方塊大小 */
+  height: 16px;
+  background: currentColor;
+  border-radius: 3px;
+}
+
+/* 手機按鈕加大 */
+@media (max-width: 600px){
+  .tts-btn{ width: 52px; height: 52px; }
+  .tts-btn[data-state="play"]::before{ border-width: 10px 0 10px 16px; }
+  .tts-btn[data-state="stop"]::before{ width: 18px; height: 18px; }
+}
+
+/* =========================
+   Header：塞進 .md-header__ellipsis 並靠右
+   ========================= */
+.md-header__ellipsis.tts-ellipsis-flex{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* 我們插入的 header 控制容器（你指定） */
+#tts-header-control{
+  margin-left: auto;
+  margin-right: -19px;            /* ✅ 依你指定（要 -20 可改） */
+  /* transform: translateY(-1px); */ /* ✅ 需要就取消註解 */
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;                /* ✅ 文字大小跟內文一致 */
+  line-height: 1.2;
+}
+
+/* =========================
+   Header 喇叭按鈕：無邊框、hover 不變色
+   ========================= */
+#tts-header-voice-toggle{
+  width: 30px;                    /* ✅ 可改：圈圈大小 */
+  height: 30px;
+  border-radius: 999px;
+
+  border: 0 !important;           /* ✅ 無邊框 */
+  background: transparent;
+  color: inherit;                 /* ✅ 重要：讓暗色模式可跟隨內文色 */
+
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+/* hover 不變色、不變背景 */
+#tts-header-voice-toggle:hover{
+  color: inherit !important;
+  background: inherit !important;
+}
+
+/* focus 保留可視化（可改） */
+#tts-header-voice-toggle:focus-visible{
+  outline: 2px solid var(--md-accent-fg-color, currentColor);
+  outline-offset: 2px;
+}
+
+/* ✅ 你指定：SVG 改 20px */
+#tts-header-voice-toggle svg{
+  width: 30px;                    /* ✅ 固定 30px */
+  height: 30px;
+  display:block;
+  fill: currentColor !important;
+}
+
+/* 亮色模式：圈圈底色較深主題色、圖示白色 */
+[data-md-color-scheme="default"] #tts-header-voice-toggle,
+[data-md-color-scheme="light"]   #tts-header-voice-toggle{
+  background: var(--md-primary-fg-color, #5e35b1) !important;
+  color: #fff !important;
+}
+
+/* ✅ 你指定：黑暗模式（dracula）時，喇叭顏色 = 內文文字色 */
+[data-md-color-scheme="dracula"] #tts-header-voice-toggle{
+  background: transparent !important;
+  color: var(--md-default-fg-color, currentColor) !important;
+}
+
+/* =========================
+   Voice Panel（Portal 到 body）+ 自製 dropdown
+   ========================= */
+#tts-voice-panel-portal{
+  position: fixed;
+  z-index: 9998;
+  display: none;
+
+  min-width: min(520px, 92vw);
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  background: var(--md-default-bg-color, rgba(20,20,20,.92));
+  border: 1px solid var(--md-default-fg-color--lightest, rgba(255,255,255,.18));
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+
+  font-size: 1rem;
+  font-weight: normal;
+
+  max-width: calc(100vw - 16px);
+  box-sizing: border-box;
+
+  max-height: min(60vh, calc(100vh - 120px));
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+#tts-voice-panel-portal.open{
+  display: block;
+  animation: ttsPopIn .12s ease-out;
+}
+@keyframes ttsPopIn{
+  from{ transform: scale(.98); opacity: .0; }
+  to  { transform: scale(1); opacity: 1; }
+}
+
+.tts-vp-row{
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  align-items: start;
+  gap: 10px;
+  margin: 6px 0;
+}
+.tts-vp-row .lbl{
+  color: var(--md-default-fg-color, #ddd);
+  padding-top: 6px;
+  user-select: none;
+}
+
+.tts-dd-btn{
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  font: inherit;
+  font-size: 1rem;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--md-default-fg-color--lightest, rgba(255,255,255,.18));
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+
+  text-align: left;
+}
+.tts-dd-btn:hover{
+  border-color: var(--md-accent-fg-color, rgba(255,255,255,.35));
+}
+.tts-dd-btn:focus-visible{
+  outline: 2px solid var(--md-accent-fg-color, currentColor);
+  outline-offset: 2px;
+}
+.tts-dd-btn .chev{
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  opacity: .85;
+  flex: 0 0 auto;
+}
+
+.tts-dd-list{
+  margin-top: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--md-default-fg-color--lightest, rgba(255,255,255,.18));
+  background: rgba(0,0,0,.18);
+  overflow: auto;
+
+  max-height: min(42vh, 320px);
+  display: none;
+}
+.tts-dd.open .tts-dd-list{ display: block; }
+
+.tts-dd-item{
+  padding: 10px 10px;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1.25;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.tts-dd-item:last-child{ border-bottom: 0; }
+.tts-dd-item:hover{
+  background: rgba(255,255,255,.10);
+}
+.tts-dd-item.active{
+  background: rgba(255,255,255,.16);
+  outline: 1px solid rgba(255,255,255,.18);
+}
+
+/* dracula：更黑（你說暗色模式不需動） */
+[data-md-color-scheme="dracula"] #tts-voice-panel-portal{
+  background: #1b1d24;
+  border-color: rgba(255,255,255,.18);
+}
+[data-md-color-scheme="dracula"] .tts-dd-list{
+  background: #13151b;
+  border-color: rgba(255,255,255,.18);
+}
+
+/* =========================
+   ✅ 亮色模式：語音清單改白底；只有 active 變暗
+   ========================= */
+[data-md-color-scheme="default"] #tts-voice-panel-portal,
+[data-md-color-scheme="light"]   #tts-voice-panel-portal{
+  background: #fff;
+  border-color: rgba(0,0,0,.12);
+  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+  color: rgba(0,0,0,.87);
+}
+[data-md-color-scheme="default"] #tts-voice-panel-portal .tts-vp-row .lbl,
+[data-md-color-scheme="light"]   #tts-voice-panel-portal .tts-vp-row .lbl{
+  color: rgba(0,0,0,.72);
+}
+[data-md-color-scheme="default"] #tts-voice-panel-portal .tts-dd-btn,
+[data-md-color-scheme="light"]   #tts-voice-panel-portal .tts-dd-btn{
+  background: #fff;
+  color: rgba(0,0,0,.87);
+  border-color: rgba(0,0,0,.18);
+}
+[data-md-color-scheme="default"] #tts-voice-panel-portal .tts-dd-list,
+[data-md-color-scheme="light"]   #tts-voice-panel-portal .tts-dd-list{
+  background: #fff;                 /* ✅ 白色 */
+  border-color: rgba(0,0,0,.12);
+}
+[data-md-color-scheme="default"] #tts-voice-panel-portal .tts-dd-item,
+[data-md-color-scheme="light"]   #tts-voice-panel-portal .tts-dd-item{
+  background: #fff;                 /* ✅ 預設白色 */
+  color: rgba(0,0,0,.87);
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+[data-md-color-scheme="default"] #tts-voice-panel-portal .tts-dd-item:hover,
+[data-md-color-scheme="light"]   #tts-voice-panel-portal .tts-dd-item:hover{
+  background: rgba(0,0,0,.06);
+}
+/* ✅ 只有當前使用中的 active 變暗 */
+[data-md-color-scheme="default"] #tts-voice-panel-portal .tts-dd-item.active,
+[data-md-color-scheme="light"]   #tts-voice-panel-portal .tts-dd-item.active{
+  background: rgba(0,0,0,.16);
+  outline: 1px solid rgba(0,0,0,.16);
+}
+
+/* =========================
+   反白浮動工具（播放 + 翻譯）
+   ========================= */
+#tts-selection-pop{
+  position: fixed;
+  z-index: 9999;
+  display: none;
+
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  background: var(--md-default-bg-color, rgba(20,20,20,.92));
+  border: 1px solid var(--md-default-fg-color--lightest, rgba(255,255,255,.18));
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+
+  align-items: center;
+  gap: 12px;
+  max-width: min(720px, 92vw);
+}
+#tts-selection-zh{
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--md-default-fg-color, #ddd);
+  word-break: break-word;
+  max-width: min(640px, 78vw);
+}
+#tts-selection-zh .muted{ opacity: .75; }
+</style>
+
+<script>
+(function () {
+  if (window.__TTS_TOOLKIT__ && typeof window.__TTS_TOOLKIT__.scheduleEnhance === "function") {
+    window.__TTS_TOOLKIT__.scheduleEnhance();
+    return;
+  }
+
+  /* =========================
+     你可以改的地方
+     ========================= */
+  const DEFAULT_LANG_EN = "en-US";
+  const DEFAULT_NAME_EN_INCLUDES = "Google US English";
+
+  const DEFAULT_LANG_ZH = "zh-TW";
+  const DEFAULT_NAME_ZH_INCLUDES = "Google";
+
+  const SELECTION_MAX_CHARS = 500;
+  const TRANSLATE_TO = "zh-TW";
+  const TRANSLATE_FROM = "en"; // 也可改 "auto"
+
+  const MAX_VOICES_RENDER = 2000;
+  /* ========================= */
+
+  let currentBtn = null;
+  let activeUtterances = [];
+  const translateCache = new Map();
+
+  const LS_VOICE_EN = "ttsVoiceKeyEN";
+  const LS_VOICE_ZH = "ttsVoiceKeyZH";
+  let voiceKeyEN = safeGetLS(LS_VOICE_EN);
+  let voiceKeyZH = safeGetLS(LS_VOICE_ZH);
+
+  let globalEventsBound = false;
+  let observer = null;
+  let observerTarget = null;
+  let scheduled = false;
+
+  function safeGetLS(key){
+    try { return localStorage.getItem(key) || null; } catch (_) { return null; }
+  }
+  function safeSetLS(key, val){
+    try { localStorage.setItem(key, val); } catch (_) {}
+  }
+
+  function supported() {
+    return ("speechSynthesis" in window) && ("SpeechSynthesisUtterance" in window);
+  }
+
+  function warmVoices() {
+    try { speechSynthesis.getVoices(); } catch (_) {}
+  }
+  function getVoices() {
+    return speechSynthesis.getVoices() || [];
+  }
+
+  function voiceKey(v){
+    if (v && v.voiceURI) return "uri:" + v.voiceURI;
+    return "nl:" + (v.lang || "") + "||" + (v.name || "");
+  }
+  function findVoiceByKey(key){
+    if (!key) return null;
+    const voices = getVoices();
+    for (const v of voices) if (voiceKey(v) === key) return v;
+    return null;
+  }
+
+  function isZhLang(lang){
+    const l = (lang || "").toLowerCase();
+    return l.startsWith("zh");
+  }
+  function isEnLang(lang){
+    const l = (lang || "").toLowerCase();
+    return l.startsWith("en");
+  }
+
+  function pickDefaultVoiceKey(voices, langNeedle, nameIncludes){
+    if (!voices.length) return null;
+
+    const needle = (nameIncludes || "").toLowerCase();
+    const langN = (langNeedle || "").toLowerCase();
+
+    let v = voices.find(x => (x.lang||"").toLowerCase() === langN && (x.name||"").toLowerCase().includes(needle));
+    if (v) return voiceKey(v);
+
+    v = voices.find(x => (x.name||"").toLowerCase().includes(needle));
+    if (v) return voiceKey(v);
+
+    v = voices.find(x => (x.lang||"").toLowerCase() === langN);
+    if (v) return voiceKey(v);
+
+    const prefix = langN.split("-")[0];
+    v = voices.find(x => (x.lang||"").toLowerCase().startsWith(prefix));
+    if (v) return voiceKey(v);
+
+    return voiceKey(voices[0]);
+  }
+
+  function ensureVoiceKeys(){
+    const voices = getVoices();
+    if (!voices.length) return;
+
+    if (!voiceKeyEN || !findVoiceByKey(voiceKeyEN)) {
+      voiceKeyEN =
+        pickDefaultVoiceKey(voices.filter(v => isEnLang(v.lang)), DEFAULT_LANG_EN, DEFAULT_NAME_EN_INCLUDES)
+        || pickDefaultVoiceKey(voices, DEFAULT_LANG_EN, DEFAULT_NAME_EN_INCLUDES);
+      if (voiceKeyEN) safeSetLS(LS_VOICE_EN, voiceKeyEN);
+    }
+
+    if (!voiceKeyZH || !findVoiceByKey(voiceKeyZH)) {
+      voiceKeyZH =
+        pickDefaultVoiceKey(voices.filter(v => isZhLang(v.lang)), DEFAULT_LANG_ZH, DEFAULT_NAME_ZH_INCLUDES)
+        || pickDefaultVoiceKey(voices, DEFAULT_LANG_ZH, DEFAULT_NAME_ZH_INCLUDES);
+      if (voiceKeyZH) safeSetLS(LS_VOICE_ZH, voiceKeyZH);
+    }
+  }
+
+  function getVoiceForLangTag(tag){
+    ensureVoiceKeys();
+    if (tag === "zh") return findVoiceByKey(voiceKeyZH) || null;
+    return findVoiceByKey(voiceKeyEN) || null;
+  }
+
+  function stop() {
+    try { speechSynthesis.cancel(); } catch (_) {}
+    activeUtterances = [];
+
+    if (currentBtn) {
+      currentBtn.setAttribute("data-state", "play");
+      currentBtn.setAttribute("aria-pressed", "false");
+      currentBtn = null;
+    }
+  }
+
+  function splitByLang(text){
+    const s = (text || "");
+    const out = [];
+    let buf = "";
+    let cur = null;
+
+    function flush(){
+      const t = buf.trim();
+      if (t) out.push({ lang: cur || "en", text: t });
+      buf = "";
+    }
+    function charType(ch){
+      if (/[\u4e00-\u9fff\u3400-\u4dbf]/.test(ch)) return "zh";
+      if (/[A-Za-z]/.test(ch)) return "en";
+      return "other";
+    }
+
+    for (let i=0;i<s.length;i++){
+      const ch = s[i];
+      const t = charType(ch);
+      const lang = (t === "other") ? (cur || "en") : t;
+
+      if (cur === null) cur = lang;
+      if (lang !== cur){
+        flush();
+        cur = lang;
+      }
+      buf += ch;
+    }
+    flush();
+    return out.length ? out : [{ lang: "en", text: s.trim() }];
+  }
+
+  function speakAuto(text, btn){
+    if (!supported()) return;
+
+    const t = (text || "").trim();
+    if (!t) return;
+
+    const pressed = btn.getAttribute("aria-pressed") === "true";
+    if (currentBtn === btn && pressed) {
+      stop();
+      return;
+    }
+
+    stop();
+
+    btn.setAttribute("data-state", "stop");
+    btn.setAttribute("aria-pressed", "true");
+    currentBtn = btn;
+
+    const segs = splitByLang(t);
+    activeUtterances = segs.map(seg => {
+      const u = new SpeechSynthesisUtterance(seg.text);
+
+      /* ✅ 可改：語速/音高 */
+      u.rate = 1.0;
+      u.pitch = 1.0;
+
+      const v = getVoiceForLangTag(seg.lang);
+      if (v) {
+        u.voice = v;
+        u.lang = v.lang || (seg.lang === "zh" ? DEFAULT_LANG_ZH : DEFAULT_LANG_EN);
+      } else {
+        u.lang = (seg.lang === "zh" ? DEFAULT_LANG_ZH : DEFAULT_LANG_EN);
+      }
+      return u;
+    });
+
+    playNext();
+  }
+
+  function playNext(){
+    if (!activeUtterances.length){
+      stop();
+      return;
+    }
+    const u = activeUtterances.shift();
+    u.onend = () => playNext();
+    u.onerror = () => stop();
+
+    warmVoices();
+    try { speechSynthesis.speak(u); } catch (_) { stop(); }
+  }
+
+  function attachSentenceButtons(root){
+    const scope = root || document;
+    scope.querySelectorAll(".tts").forEach(textSpan => {
+      let wrap = textSpan.closest(".tts-wrap");
+      if (!wrap) {
+        wrap = document.createElement("span");
+        wrap.className = "tts-wrap";
+        textSpan.parentNode.insertBefore(wrap, textSpan);
+        wrap.appendChild(textSpan);
+      }
+      if (wrap.querySelector(":scope > button.tts-btn")) return;
+
+      const pure = (textSpan.getAttribute("data-tts") || textSpan.textContent || "").trim();
+      textSpan.setAttribute("data-tts", pure);
+
+      const btn = document.createElement("button");
+      btn.className = "tts-btn";
+      btn.type = "button";
+      btn.setAttribute("data-state", "play");
+      btn.setAttribute("aria-pressed", "false");
+      btn.setAttribute("aria-label", "Play/Stop");
+
+      btn.addEventListener("pointerdown", warmVoices, { passive: true });
+      btn.addEventListener("click", () => speakAuto(textSpan.getAttribute("data-tts"), btn));
+
+      wrap.appendChild(btn);
+    });
+  }
+
+  function getHeaderEllipsis(){
+    return document.querySelector(".md-header__ellipsis");
+  }
+
+  function ensureHeaderControl(){
+    const ellipsis = getHeaderEllipsis();
+    if (!ellipsis) return false;
+
+    ellipsis.classList.add("tts-ellipsis-flex");
+    if (document.getElementById("tts-header-control")) return true;
+
+    const wrap = document.createElement("span");
+    wrap.id = "tts-header-control";
+
+    const toggle = document.createElement("button");
+    toggle.id = "tts-header-voice-toggle";
+    toggle.type = "button";
+    toggle.setAttribute("aria-label", "Choose voices");
+    toggle.innerHTML = `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 10v4c0 1.1.9 2 2 2h3l4 3V5L8 8H5c-1.1 0-2 .9-2 2zm13.5 2c0-1.77-1.02-3.29-2.5-4.03v8.06c1.48-.74 2.5-2.26 2.5-4.03z"/>
+      </svg>
+    `;
+
+    toggle.addEventListener("pointerdown", warmVoices, { passive: true });
+    toggle.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openOrToggleVoicePanel(toggle);
+    });
+
+    wrap.appendChild(toggle);
+    ellipsis.appendChild(wrap);
+
+    return true;
+  }
+
+  function ensureVoicePanelPortal(){
+    let panel = document.getElementById("tts-voice-panel-portal");
+    if (panel) return panel;
+
+    panel = document.createElement("div");
+    panel.id = "tts-voice-panel-portal";
+    panel.appendChild(makeDropdownRow("EN", "en"));
+    panel.appendChild(makeDropdownRow("ZH", "zh"));
+
+    document.body.appendChild(panel);
+    return panel;
+  }
+
+  function makeDropdownRow(label, kind){
+    const row = document.createElement("div");
+    row.className = "tts-vp-row";
+
+    const lbl = document.createElement("div");
+    lbl.className = "lbl";
+    lbl.textContent = label;
+
+    const dd = document.createElement("div");
+    dd.className = "tts-dd";
+    dd.setAttribute("data-kind", kind);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "tts-dd-btn";
+    btn.innerHTML = `<span class="txt">Loading…</span><span class="chev"></span>`;
+    btn.addEventListener("pointerdown", warmVoices, { passive: true });
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleDropdown(kind);
+    });
+
+    const list = document.createElement("div");
+    list.className = "tts-dd-list";
+
+    dd.appendChild(btn);
+    dd.appendChild(list);
+
+    row.appendChild(lbl);
+    row.appendChild(dd);
+    return row;
+  }
+
+  function closeAllDropdowns(){
+    document.querySelectorAll("#tts-voice-panel-portal .tts-dd.open").forEach(x => x.classList.remove("open"));
+  }
+
+  function toggleDropdown(kind){
+    const panel = document.getElementById("tts-voice-panel-portal");
+    if (!panel) return;
+    const dd = panel.querySelector(`.tts-dd[data-kind="${kind}"]`);
+    if (!dd) return;
+
+    const isOpen = dd.classList.contains("open");
+    closeAllDropdowns();
+    if (!isOpen) dd.classList.add("open");
+  }
+
+  function voiceLabel(v){
+    return `${v.lang} — ${v.name}`;
+  }
+
+  function syncVoiceDropdowns(){
+    const panel = document.getElementById("tts-voice-panel-portal");
+    if (!panel) return;
+
+    const voices = getVoices();
+    ensureVoiceKeys();
+
+    const ddEN = panel.querySelector('.tts-dd[data-kind="en"]');
+    const ddZH = panel.querySelector('.tts-dd[data-kind="zh"]');
+
+    if (ddEN) fillDropdown(ddEN, voices, "en", voiceKeyEN);
+    if (ddZH) fillDropdown(ddZH, voices, "zh", voiceKeyZH);
+  }
+
+  function fillDropdown(dd, voices, kind, selectedKey){
+    const btnTxt = dd.querySelector(".tts-dd-btn .txt");
+    const list = dd.querySelector(".tts-dd-list");
+    list.innerHTML = "";
+
+    const filtered = (kind === "zh")
+      ? voices.filter(v => isZhLang(v.lang))
+      : voices.filter(v => isEnLang(v.lang));
+
+    const listVoices = filtered.length ? filtered : voices;
+    const trimmed = listVoices.slice(0, MAX_VOICES_RENDER);
+
+    const exists = trimmed.some(v => voiceKey(v) === selectedKey) || listVoices.some(v => voiceKey(v) === selectedKey);
+    if (!exists) {
+      const fallbackKey =
+        (kind === "zh")
+          ? pickDefaultVoiceKey(listVoices, DEFAULT_LANG_ZH, DEFAULT_NAME_ZH_INCLUDES)
+          : pickDefaultVoiceKey(listVoices, DEFAULT_LANG_EN, DEFAULT_NAME_EN_INCLUDES);
+
+      if (kind === "zh") { voiceKeyZH = fallbackKey; safeSetLS(LS_VOICE_ZH, voiceKeyZH); selectedKey = voiceKeyZH; }
+      else { voiceKeyEN = fallbackKey; safeSetLS(LS_VOICE_EN, voiceKeyEN); selectedKey = voiceKeyEN; }
+    }
+
+    const selectedVoice = findVoiceByKey(selectedKey) || listVoices[0] || null;
+    if (btnTxt) btnTxt.textContent = selectedVoice ? voiceLabel(selectedVoice) : "No voices";
+
+    if (!trimmed.length) {
+      const it = document.createElement("div");
+      it.className = "tts-dd-item";
+      it.textContent = "No voices";
+      list.appendChild(it);
+      return;
+    }
+
+    trimmed.forEach(v => {
+      const k = voiceKey(v);
+      const it = document.createElement("div");
+      it.className = "tts-dd-item" + (k === selectedKey ? " active" : "");
+      it.textContent = voiceLabel(v);
+
+      it.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (kind === "zh") { voiceKeyZH = k; safeSetLS(LS_VOICE_ZH, voiceKeyZH); }
+        else { voiceKeyEN = k; safeSetLS(LS_VOICE_EN, voiceKeyEN); }
+
+        syncVoiceDropdowns();
+        closeAllDropdowns();
+      });
+
+      list.appendChild(it);
+    });
+  }
+
+  function hideVoicePanel(){
+    const panel = document.getElementById("tts-voice-panel-portal");
+    if (!panel) return;
+    panel.classList.remove("open");
+    panel.style.display = "none";
+    closeAllDropdowns();
+  }
+
+  function openOrToggleVoicePanel(anchorBtn){
+    const panel = ensureVoicePanelPortal();
+
+    if (panel.classList.contains("open")) {
+      hideVoicePanel();
+      return;
+    }
+
+    warmVoices();
+    ensureVoiceKeys();
+    syncVoiceDropdowns();
+
+    panel.style.display = "block";
+    panel.classList.add("open");
+    closeAllDropdowns();
+
+    requestAnimationFrame(() => positionVoicePanel(anchorBtn, panel));
+  }
+
+  function positionVoicePanel(anchorBtn, panel){
+    if (!anchorBtn || !panel) return;
+
+    const margin = 8;
+    const gap = 8;
+    const r = anchorBtn.getBoundingClientRect();
+
+    const w = panel.offsetWidth || 360;
+    const h = panel.offsetHeight || 160;
+
+    let left = r.right - w;
+    let top  = r.bottom + gap;
+
+    if (left < margin) left = margin;
+    if (left + w > window.innerWidth - margin) left = window.innerWidth - margin - w;
+
+    if (top + h > window.innerHeight - margin) {
+      top = r.top - gap - h;
+    }
+    if (top < margin) top = margin;
+
+    panel.style.left = left + "px";
+    panel.style.top  = top + "px";
+  }
+
+  function ensureSelectionPop() {
+    let pop = document.getElementById("tts-selection-pop");
+    if (pop) return pop;
+
+    pop = document.createElement("div");
+    pop.id = "tts-selection-pop";
+
+    const btn = document.createElement("button");
+    btn.className = "tts-btn";
+    btn.type = "button";
+    btn.setAttribute("data-state", "play");
+    btn.setAttribute("aria-pressed", "false");
+    btn.setAttribute("aria-label", "Speak selection");
+
+    const zh = document.createElement("div");
+    zh.id = "tts-selection-zh";
+    zh.innerHTML = '<span class="muted">翻譯載入中…</span>';
+
+    btn.addEventListener("pointerdown", warmVoices, { passive: true });
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const text = getSelectionText();
+      if (!text) return;
+      speakAuto(text, btn);
+    });
+
+    pop.appendChild(btn);
+    pop.appendChild(zh);
+    document.body.appendChild(pop);
+    return pop;
+  }
+
+  function getSelectionPopEl() { return document.getElementById("tts-selection-pop"); }
+
+  function nodeInsidePop(node, pop) {
+    if (!node || !pop) return false;
+    const el = (node.nodeType === Node.TEXT_NODE) ? node.parentNode : node;
+    return !!(el && pop.contains(el));
+  }
+
+  function selectionTouchesPop() {
+    const pop = getSelectionPopEl();
+    const sel = window.getSelection ? window.getSelection() : null;
+    if (!pop || !sel || sel.rangeCount === 0) return false;
+    return nodeInsidePop(sel.anchorNode, pop) || nodeInsidePop(sel.focusNode, pop);
+  }
+
+  function hideSelectionPop() {
+    const pop = getSelectionPopEl();
+    if (pop) pop.style.display = "none";
+  }
+
+  function getSelectionText() {
+    const sel = window.getSelection ? window.getSelection() : null;
+    if (!sel || sel.rangeCount === 0) return "";
+    const text = (sel.toString() || "").trim();
+    if (!text || text.length > SELECTION_MAX_CHARS) return "";
+    return text;
+  }
+
+  function getSelectionRect() {
+    const sel = window.getSelection ? window.getSelection() : null;
+    if (!sel || sel.rangeCount === 0) return null;
+    const range = sel.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    if (!rect || (rect.width === 0 && rect.height === 0)) return null;
+    return rect;
+  }
+
+  async function translateToZh(text) {
+    const key = `${TRANSLATE_FROM}|${TRANSLATE_TO}|${text}`;
+    if (translateCache.has(key)) return translateCache.get(key);
+
+    const url =
+      "https://translate.googleapis.com/translate_a/single" +
+      `?client=gtx&sl=${encodeURIComponent(TRANSLATE_FROM)}` +
+      `&tl=${encodeURIComponent(TRANSLATE_TO)}` +
+      `&dt=t&q=${encodeURIComponent(text)}`;
+
+    try {
+      const res = await fetch(url, { method: "GET" });
+      if (!res.ok) throw new Error("http " + res.status);
+      const data = await res.json();
+      const translated = Array.isArray(data?.[0]) ? data[0].map(x => x?.[0] || "").join("") : "";
+      translateCache.set(key, translated);
+      return translated;
+    } catch (_) {
+      translateCache.set(key, "");
+      return "";
+    }
+  }
+
+  async function showSelectionPop() {
+    if (!supported()) return;
+    if (selectionTouchesPop()) return;
+
+    const text = getSelectionText();
+    if (!text) return;
+
+    const rect = getSelectionRect();
+    if (!rect) return;
+
+    const pop = ensureSelectionPop();
+    const zh = document.getElementById("tts-selection-zh");
+
+    pop.style.display = "flex";
+
+    const offset = 8;
+    const popW = pop.offsetWidth || 240;
+    const popH = pop.offsetHeight || 56;
+
+    let left = rect.left + rect.width / 2 - popW / 2;
+    let top  = rect.top - popH - offset;
+
+    left = Math.max(8, Math.min(left, window.innerWidth - popW - 8));
+    if (top < 8) top = rect.bottom + offset;
+
+    pop.style.left = `${left}px`;
+    pop.style.top  = `${top}px`;
+
+    if (zh) {
+      zh.innerHTML = '<span class="muted">翻譯載入中…</span>';
+      const translated = await translateToZh(text);
+      zh.textContent = translated ? translated : "（翻譯失敗或被阻擋）";
+    }
+  }
+
+  function bindGlobalEventsOnce(){
+    if (globalEventsBound) return;
+    globalEventsBound = true;
+
+    document.addEventListener("mouseup", (e) => {
+      const pop = getSelectionPopEl();
+      if (pop && e.target && pop.contains(e.target)) return;
+      setTimeout(showSelectionPop, 0);
+    });
+
+    document.addEventListener("keyup", () => {
+      const pop = getSelectionPopEl();
+      if (pop && document.activeElement && pop.contains(document.activeElement)) return;
+      setTimeout(showSelectionPop, 0);
+    });
+
+    document.addEventListener("mousedown", (e) => {
+      const t = e.target;
+
+      const panel = document.getElementById("tts-voice-panel-portal");
+      const toggle = document.getElementById("tts-header-voice-toggle");
+      if (panel && panel.classList.contains("open")) {
+        const insidePanel = panel.contains(t);
+        const insideToggle = toggle && toggle.contains(t);
+        if (!insidePanel && !insideToggle) hideVoicePanel();
+        if (insidePanel && !t.closest(".tts-dd")) closeAllDropdowns();
+      }
+
+      const pop = getSelectionPopEl();
+      if (pop && t && !pop.contains(t)) hideSelectionPop();
+    }, { passive: true });
+
+    window.addEventListener("resize", () => {
+      hideSelectionPop();
+      const panel = document.getElementById("tts-voice-panel-portal");
+      const toggle = document.getElementById("tts-header-voice-toggle");
+      if (panel && panel.classList.contains("open") && toggle) {
+        positionVoicePanel(toggle, panel);
+      }
+    });
+
+    window.addEventListener("scroll", hideSelectionPop, true);
+
+    if ("speechSynthesis" in window) {
+      speechSynthesis.onvoiceschanged = () => {
+        ensureVoiceKeys();
+        syncVoiceDropdowns();
+      };
+    }
+
+    if (window.document$ && typeof window.document$.subscribe === "function") {
+      window.document$.subscribe(() => scheduleEnhance(true));
+    }
+    document.addEventListener("navigation:complete", () => scheduleEnhance(true));
+  }
+
+  function getContentRoot(){
+    return document.querySelector(".md-content .md-content__inner")
+        || document.querySelector(".md-content")
+        || document.querySelector("main")
+        || document.body;
+  }
+
+  function enhanceOnce(){
+    if (!supported()) return;
+
+    const root = getContentRoot();
+    attachSentenceButtons(root);
+
+    ensureHeaderControl();
+    ensureVoicePanelPortal();
+    syncVoiceDropdowns();
+
+    ensureSelectionPop();
+  }
+
+  function enhanceWithRetry(tries){
+    enhanceOnce();
+
+    const ellipsis = getHeaderEllipsis();
+    const hasHeaderBtn = !!document.getElementById("tts-header-control");
+    const ready = !!ellipsis && hasHeaderBtn;
+
+    if (!ready && tries < 14) {
+      setTimeout(() => enhanceWithRetry(tries + 1), 120);
+    }
+  }
+
+  function scheduleEnhance(force){
+    if (scheduled && !force) return;
+    scheduled = true;
+
+    requestAnimationFrame(() => {
+      scheduled = false;
+      warmVoices();
+      ensureVoiceKeys();
+      enhanceWithRetry(0);
+      startObserver();
+    });
+  }
+
+  function startObserver(){
+    const target = getContentRoot();
+    if (!target) return;
+
+    if (observer && observerTarget === target) return;
+
+    if (observer) {
+      try { observer.disconnect(); } catch (_) {}
+      observer = null;
+      observerTarget = null;
+    }
+
+    observerTarget = target;
+    observer = new MutationObserver(() => scheduleEnhance(false));
+    observer.observe(target, { childList: true, subtree: true });
+  }
+
+  function init(){
+    if (!supported()) return;
+    bindGlobalEventsOnce();
+    warmVoices();
+    ensureVoiceKeys();
+    scheduleEnhance(true);
+    startObserver();
+  }
+
+  window.__TTS_TOOLKIT__ = {
+    scheduleEnhance: () => scheduleEnhance(true)
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
