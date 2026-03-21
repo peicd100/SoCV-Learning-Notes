@@ -3,12 +3,12 @@
 ## 預覽
 ## 預覽
 ```
-activate mkdocs
+activate mkdocs_desk
 mkdocs serve --dirty 
 
 ```
 ```
-activate mkdocs
+activate mkdocs_desk
 mkdocs serve 
 
 ```
