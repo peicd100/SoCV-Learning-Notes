@@ -157,3 +157,8 @@ git clone https://github.com/peicd100/university-notes.git
 - 2026-03-21：已將 `docs/md/Verilog/vector.md` 重寫為 Quick Reference，整理成宣告、索引/切片、位寬規則、`{}` 串接與重複、packed/unpacked、常見地雷等速查段落，並補上哪些術語屬於 SystemVerilog 的註記。
 - 2026-03-21：已將 `docs/md/Verilog/priority encoder.md` 重寫為 Quick Reference，補上 LSB/MSB 優先方向說明、`casez` 寫法、`valid` 觀念與常見地雷，並修正原本文字描述與範例方向不一致的問題。
 - 2026-03-21：已將 `docs/md/Verilog/運算子.md` 重寫為 Quick Reference，重新整理 bitwise/logical/reduction/比較/shift/位寬規則與 signedness，並修正原本對位寬與運算分類較容易誤解的敘述。
+- 2026-03-22：已將 `docs/md/Verilog` 全區改為主題式 Quick Reference；新增 `模組與建模方式.md`、`always、initial 與事件控制.md`、`blocking 與 non-blocking.md`、`迴圈與程序控制.md`，並重寫 `首頁.md`、`學習資源整理.md`、`常見資料型別.md`、`vector.md`、`數值.md`、`運算子.md`、`選擇結構.md`、`system tasks.md`、`priority encoder.md`。
+- 2026-03-22：已將 `Procedural style.md` 依主題拆散，並移除已被吸收的重複頁 `不同種接線風格.md`、`MSB、LSB.md`、`電路框架.md`、`防止變成 latch.md`、`timescale.md`，避免 MkDocs 搜尋結果繼續命中舊重複內容。
+- 2026-03-22：已同步重整 `mkdocs.yml` 的 `Verilog Quick Reference` 導覽，改為 `首頁 / 學習資源 / 基礎語法 / 程序式寫法 / 模擬與常見電路` 三層主題結構；本次已檢查 `.gitignore`，不需新增忽略規則。
+- 2026-03-22：已將窄版右側 TOC 的 `目錄` 浮動按鈕由右下角移到右上角、頁首下方，避免遮住頁尾 `Next` 翻頁按鈕；同時更新 `自定義.css` 的版本參數，降低手機瀏覽器快取舊樣式的機率，並再次確認 `.gitignore` 無需新增規則。
+- 2026-03-22：已再把窄版 `目錄` 控制改成 header 內的原生 icon 按鈕，直接插在 search 按鈕右邊；作法是讓 `toc-fold.js` 在 mobile 時把按鈕掛到 `.md-header`，並沿用 `md-header__button md-icon` 風格，同步補上 `aria-expanded` / `aria-controls` / `aria-label`，且在 search 展開時自動隱藏；本次也把 `自定義.css` 版本參數更新為 `20260322-2`，並再次確認 `.gitignore` 不需變更。

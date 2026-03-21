@@ -453,6 +453,7 @@
     if (state.mobileButton) {
       state.mobileButton.setAttribute("aria-expanded", String(open));
       state.mobileButton.setAttribute("title", open ? "關閉目錄" : "打開目錄");
+      state.mobileButton.setAttribute("aria-label", open ? "關閉目錄" : "打開目錄");
     }
 
     if (state.mobileScrim) state.mobileScrim.hidden = !open;
@@ -470,11 +471,21 @@
   }
 
   function buildMobileChrome() {
+    const searchToggle = document.querySelector("label[for='__search'].md-header__button.md-icon");
+    const headerOptions = document.querySelector(".md-header__options");
+    const headerInner = document.querySelector(".md-header__inner");
+
     const mobileButton = document.createElement("button");
     mobileButton.type = "button";
     mobileButton.id = MOBILE_TOGGLE_ID;
-    mobileButton.className = CLASS.mobileToggle;
-    mobileButton.textContent = "目錄";
+    mobileButton.className = "md-header__button md-icon " + CLASS.mobileToggle;
+    mobileButton.setAttribute("aria-label", "打開目錄");
+    mobileButton.setAttribute("title", "打開目錄");
+    mobileButton.innerHTML = [
+      '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">',
+      '  <path d="M7 5h14v2H7V5M3 4.5A1.5 1.5 0 0 1 4.5 6A1.5 1.5 0 0 1 3 7.5A1.5 1.5 0 0 1 1.5 6A1.5 1.5 0 0 1 3 4.5M7 11h14v2H7v-2M3 10.5A1.5 1.5 0 0 1 4.5 12A1.5 1.5 0 0 1 3 13.5A1.5 1.5 0 0 1 1.5 12A1.5 1.5 0 0 1 3 10.5M7 17h14v2H7v-2M3 16.5A1.5 1.5 0 0 1 4.5 18A1.5 1.5 0 0 1 3 19.5A1.5 1.5 0 0 1 1.5 18A1.5 1.5 0 0 1 3 16.5Z"></path>',
+      "</svg>"
+    ].join("");
     mobileButton.hidden = true;
     mobileButton.addEventListener("click", () => setMobileOpen(!state.sidebar.classList.contains(CLASS.mobileVisible)));
 
@@ -485,7 +496,11 @@
     mobileScrim.setAttribute("aria-label", "關閉目錄");
     mobileScrim.addEventListener("click", () => setMobileOpen(false));
 
-    document.body.append(mobileScrim, mobileButton);
+    document.body.append(mobileScrim);
+    if (searchToggle) searchToggle.insertAdjacentElement("afterend", mobileButton);
+    else if (headerOptions) headerOptions.append(mobileButton);
+    else if (headerInner) headerInner.append(mobileButton);
+    else document.body.append(mobileButton);
 
     state.mobileButton = mobileButton;
     state.mobileScrim = mobileScrim;

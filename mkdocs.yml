@@ -98,7 +98,7 @@ plugins:
 
 extra_css:
   - assets/pymdownx-extras/extra-8611f6c398.css  # 自定義 CSS 文件
-  - assets/pymdownx-extras/自定義.css?v=20260320-3  # 自定義 CSS 文件（加版本參數避免手機快取吃舊版）
+  - assets/pymdownx-extras/自定義.css?v=20260322-2  # 自定義 CSS 文件（加版本參數避免手機快取吃舊版）
 
 extra_javascript:
   - https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js  # Mermaid 圖表支持
