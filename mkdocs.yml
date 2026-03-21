@@ -1,0 +1,281 @@
+site_name: 'SoCV Learning Notes'  # 網站名稱
+
+# ✅ MkDocs 只要設定 site_url，就會自動生成 /sitemap.xml（MkDocs 0.13+ 內建）：
+#    GitHub Pages 專案站要包含 repository 子路徑，否則 canonical / sitemap / 首頁連結都會指到錯誤位置。
+site_url: https://peicd100.github.io/university-notes/  # GitHub Pages 專案站 URL
+use_directory_urls: false  # 保持目前 .html URL 風格（避免既有連結失效）；想用 /path/ 風格可改 true
+
+theme:
+  name: 'material'  # 使用 Material 主題(這邊有toc)
+  custom_dir: docs/theme  # 指定自定義主題目錄
+  logo: 'logo/logo.png'  # 設置網站的 LOGO
+  favicon: 'logo/logo.png'  # 設置瀏覽器標籤上的圖標
+  palette:
+    scheme: slate  # 使用 dracula 色彩方案，提供深色背景 slate
+    primary: cyan  # 設置主色調為深紫色
+    accent: cyan  # 設置輔助色調為深紫色
+  features:
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    # - navigation.sections
+    - navigation.tabs  # 啟用標籤式導航
+    - navigation.top  # 當使用者向下捲動後開始再次向上捲動時，可以顯示返回頂部按鈕。
+    # - navigation.tracking  # 目前網址 fragment 改由自訂 toc-fold.js 與 current 同步，避免和自訂 scrollspy 雙來源衝突
+    - announce.dismiss  # 添加通知的關閉功能
+
+    # ❌ 這個不是 Material 的 features 選項，放在這裡反而容易誤會：
+    # - sitemap  # (sitemap 由 MkDocs 依 site_url 自動生成)
+
+    # - toc.follow  # 右側 TOC 目前改由自訂 toc-fold.js 控制跟隨/手動滾動保護，避免與內建自動捲動衝突
+             # - toc.integrate #啟用目錄的導覽整合後，它始終呈現為左側導覽側邊欄的一部分////////////////////////////////////////////////////////////////////////////////////////////////////////
+    - content.tabs.link  # 允許內容中的標籤鏈接
+    - search.share  # 啟用搜索結果共享功能
+             # - search.suggest  # 搜索時提供自動建議
+    - content.code.copy  # 代碼塊中顯示“複製”按鈕
+    - content.code.annotations  # 啟用代碼註解功能
+    - content.action.edit
+    - content.action.view
+    - content.tooltips
+
+# extra:
+#   blog:
+#     dir: blog
+#     author: PEICSOC
+#     author_image: logo/logo.png
+#     words_read_per_minute: 300
+#     list_length: 25
+#     extended_preview: true
+
+plugins:
+  # - awesome-nav
+  - blog:
+      blog_toc: true
+  - rss:
+      match_path: blog/posts/
+      date_from_meta:
+        as_creation: date
+  - offline #當您將網站目錄的內容作為下載分發時，內建的離線外掛程式可確保網站搜尋正常運作。只需將以下行新增至：mkdocs.yml
+  - tags
+  - search:
+      # lang:
+      #   - en
+      #   - zh
+      # # separator: '[\s\-\.]+'
+      separator: '[\s\u200b\-]'
+      # pipeline:
+      #   # - stemmer
+      #   - stopWordFilter
+      #   - trimmer
+
+
+  - encryptcontent:
+      input_class: 'custom-password-input'
+      title_prefix: '' #標題前面的文字文字
+      summary: '解鎖筆記'
+      placeholder: '密碼'
+      decryption_failure_message: '錯了'
+      encryption_info_message: "請輸入密碼"
+      password_button: True       #解鎖按鈕
+      password_button_text: '解鎖' #解鎖按鈕
+      # global_password: '88888888'               # 啟用全域密碼
+      # search_index: 'dynamically'  # 建置時加密索引；使用者解密頁面後才能搜到(但好像沒有真的觸發)
+
+
+
+
+
+
+
+
+
+  # - macros  # 启用宏插件，允許自定義變量和代碼塊
+  # - mkdocs-jupyter  # 支持 Jupyter Notebook 文件轉換
+  # - minify:  # HTML 壓縮插件
+  #     minify_html: true  # 啟用 HTML 壓縮
+
+extra_css:
+  - assets/pymdownx-extras/extra-8611f6c398.css  # 自定義 CSS 文件
+  - assets/pymdownx-extras/自定義.css?v=20260320-3  # 自定義 CSS 文件（加版本參數避免手機快取吃舊版）
+
+extra_javascript:
+  - https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js  # Mermaid 圖表支持
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js  # MathJax 支持數學公式
+  - assets/pymdownx-extras/mermaid-config-override.js  # Mermaid flowchart 啟用 htmlLabels，支援節點內 <br>
+  - assets/pymdownx-extras/extra-loader-iLQ-keay.js  # 自定義 JavaScript 文件
+  - assets/pymdownx-extras/mermaid-render-fix.js  # 補強 Mermaid 首次載入 / instant navigation / 主題切換渲染
+  - assets/pymdownx-extras/mermaid-zoom.js  # Mermaid 圖卡化與放大檢視
+  - assets/pymdownx-extras/toc-fold.js  # 右側 TOC 可摺疊 / 展開控制
+  - assets/pymdownx-extras/image-zoom.js  # 文章圖片放大檢視 / 拖曳 / 縮放
+  - assets/pymdownx-extras/folder-path-bar.js?v=20260320-3  # H1 上方檔案總管式路徑列（加版本參數避免手機快取吃舊版）
+  - assets/pymdownx-extras/legacy-image-width.js  # 舊圖片百分比語法相容
+  - assets/pymdownx-extras/source-jump.js  # 本機選字右鍵可跳回 Markdown 原始檔位置（需 mkdocs serve）
+
+hooks:
+  - tools/source_jump_hook.py
+
+# Markdown 擴展設置
+markdown_extensions:
+  - pymdownx.snippets:
+      check_paths: true
+  - markdown_include.include: #include其他的.md
+      base_path: docs
+  - nl2br #硬換行
+  - pymdownx.magiclink  #網址自動加入超連結
+
+  - markdown.extensions.toc:  # 目錄擴展
+      slugify: !!python/object/apply:pymdownx.slugs.slugify {kwds: {case: lower}}  # 使用 pymdownx 進行標題的 Slug 化處理
+      permalink: ""  # 禁用永久鏈接符號
+      # toc_depth: 4   # 目錄顯示的深度
+
+  - markdown.extensions.admonition:  # 警告框擴展
+  - markdown.extensions.smarty:  # 智能引號擴展
+      smart_quotes: false  # 禁用智能引號
+
+  - pymdownx.betterem:  # BetterEm 擴展，增強的 Markdown 語法支持
+  - markdown.extensions.attr_list:  # 支持 Markdown 內的 HTML 屬性語法
+  - markdown.extensions.def_list:  # 定義列表擴展
+  - markdown.extensions.tables:  # 表格支持
+  - markdown.extensions.abbr:  # 縮寫支持
+  - markdown.extensions.footnotes:  # 支持腳註
+  - markdown.extensions.md_in_html:  # 支持 HTML 中嵌入 Markdown
+
+  - pymdownx.superfences:  # 增強的程式碼塊擴展
+      preserve_tabs: true  # 保持原始的縮排格式
+      custom_fences:  # 自定義的 fenced blocks
+        - name: mermaid  # Mermaid fenced code block 支援（沿用既有 diagram loader）
+          class: diagram
+          format: !!python/name:pymdownx.superfences.fence_code_format
+        - name: diagram  # Mermaid 圖表支持
+          class: diagram
+          format: !!python/name:pymdownx.superfences.fence_code_format
+        - name: math  # 數學公式支持
+          class: arithmatex
+          format: !!python/object/apply:pymdownx.arithmatex.arithmatex_fenced_format {kwds: {mode: generic, tag: pre}}
+        - name: md-render  # Markdown 渲染支持
+          class: md-render
+          format: !!python/name:tools.pymdownx_md_render.md_sub_render
+
+  - pymdownx.highlight:  # 語法高亮擴展
+      extend_pygments_lang:  # 擴展 pygments 語言支持
+        - name: php-inline  # 支持 PHP inline 語法
+          lang: php
+          options:
+            startinline: true
+        - name: pycon3  # 支持 Python 3 REPL 語法
+          lang: pycon
+          options:
+            python3: true
+      linenums_style: pymdownx-inline  # 行號樣式設置
+
+  - pymdownx.inlinehilite:  # 行內高亮擴展
+      custom_inline:
+        - name: math  # 行內數學公式支持
+          class: arithmatex
+          format: !!python/object/apply:pymdownx.arithmatex.arithmatex_inline_format {kwds: {mode: generic}}
+
+  - pymdownx.tilde:  # Tilde 擴展，支持刪除線
+  - pymdownx.caret:  # Caret 擴展，支持插入符號
+  - pymdownx.smartsymbols:  # 支持智能符號轉換
+
+  - pymdownx.emoji:  # Emoji 擴展
+      emoji_index: !!python/name:material.extensions.emoji.twemoji  # 使用 Twemoji 作為 Emoji 索引
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg  # 將 Emoji 渲染為 SVG
+
+  - pymdownx.tasklist:  # 任務清單擴展
+      custom_checkbox: true  # 自定義復選框樣式
+
+  - pymdownx.progressbar:  # 進度條擴展
+
+  - pymdownx.arithmatex:  # Arithmatex 數學公式擴展
+      generic: true  # 通用模式
+      block_tag: 'pre'  # 渲染為 `<pre>` 標籤
+
+  - pymdownx.mark:  # 高亮標記擴展
+
+  - pymdownx.keys:  # 鍵盤按鍵樣式支持
+      separator: "+"  # 自定義鍵位分隔符號
+
+  - pymdownx.details:  # 詳情框擴展
+
+  - pymdownx.tabbed:  # 標籤頁擴展
+      alternate_style: true  # 啟用交替樣式
+
+  - pymdownx.saneheaders:  # 合理的標題擴展
+
+  - pymdownx.blocks.admonition:  # Blocks 警告框擴展
+      types:  # 自定義警告框類型
+        - new
+        - settings
+        - note
+        - abstract
+        - info
+        - tip
+        - success
+        - question
+        - warning
+        - failure
+        - danger
+        - bug
+        - example
+        - quote
+
+  - pymdownx.blocks.details:  # Blocks 詳情框擴展
+      types:  # 自定義詳情框類型
+        - name: details-new
+          class: new
+        - name: details-settings
+          class: settings
+        - name: details-note
+          class: note
+        - name: details-abstract
+          class: abstract
+        - name: details-info
+          class: info
+        - name: details-tip
+          class: tip
+        - name: details-success
+          class: success
+        - name: details-question
+          class: question
+        - name: details-warning
+          class: warning
+        - name: details-failure
+          class: failure
+        - name: details-danger
+          class: danger
+        - name: details-bug
+          class: bug
+        - name: details-example
+          class: example
+        - name: details-quote
+          class: quote
+
+  - pymdownx.blocks.html:  # 支持 HTML Block
+  - pymdownx.blocks.definition:  # 支持定義列表 Block
+
+  - pymdownx.blocks.tab:  # 支持標籤頁 Block
+      alternate_style: True  # 使用交替樣式
+      combine_header_slug: True  # 合併標題 Slug
+      slugify: !!python/object/apply:pymdownx.slugs.slugify {kwds: {case: lower}}  # 使用自定義 Slug 化方式
+
+  - tools.collapse_code:  # 支持折疊程式碼塊
+      expand_text: ''  # 展開時顯示的文本
+      collapse_text: ''  # 折疊時顯示的文本
+  # - tools.i: #中英文之間自動空格
+
+
+# ======================================================
+# 自定義網站的導航結構
+# ======================================================
+not_in_nav: /index.md #忽略index.md
+
+nav:
+
+  - 'SoCV Learning Notes':
+    - 'index.md'
+    - 'md/課程資訊.md'
+    - 'md/Week 1.md'
+    - 'md/Week 2.md'

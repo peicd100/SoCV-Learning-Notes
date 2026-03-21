@@ -1,0 +1,19 @@
+mkdocs<2
+click==8.2.1
+mkdocs-material==9.7.1
+mkdocs-macros-plugin
+mkdocs-jupyter
+mkdocs-mermaid2-plugin
+mkdocs-gen-files
+mkdocs-minify-plugin
+markdown-include
+requests
+.
+mkdocs-encryptcontent-plugin
+jieba
+mkdocs-rss-plugin
+mkdocs-awesome-nav
+edge-tts==7.2.7
+# ffmpeg executable is required by docs/md/多益600/紀錄.py
+# install via conda: conda install -n mkdocs -y -c conda-forge ffmpeg
+

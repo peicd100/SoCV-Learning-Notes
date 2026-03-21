@@ -1,0 +1,65 @@
+# Python 快取與編譯產物
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 建置與封裝輸出
+build/
+dist/
+.eggs/
+*.egg-info/
+pip-wheel-metadata/
+
+# 虛擬環境
+.venv/
+venv/
+env/
+ENV/
+
+# 測試與工具快取
+.cache/
+.playwright-cli/
+playwright-report/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+test-results/
+
+# MkDocs 產生物
+site/
+output/
+.codex_tmp/
+.codex_site_check/
+
+# MkDocs Encrypt Content 外掛快取 / 金鑰
+encryptcontent.cache
+encryptcontent.key
+
+# PyInstaller
+*.spec
+
+# 環境變數與本機密鑰
+.env
+.env.*
+!.env.example
+
+# 編輯器與作業系統雜訊
+.DS_Store
+Thumbs.db
+.idea/
+
+# VS Code：沿用官方範本，保留可共享的工作區設定
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+!*.code-workspace
