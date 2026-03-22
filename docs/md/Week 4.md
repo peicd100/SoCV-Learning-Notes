@@ -80,6 +80,10 @@ GV 的 `CirMgr::_dfsList` 其實已經存了這個順序，所以實作上只需
 4. **沒有萬能排序**：乘法器無論怎麼排都是指數級的。Variable ordering 能改善常數因子，但無法突破函數本身的 inherent complexity。
 
 
+<!--
+03/18 class ends here 之後的內容先保留在原始檔，不顯示於網站。
+之後若要恢復顯示，只要移除這個 HTML 註解包裹即可。
+
 ## [LN] Playing with different DDs
 
 ### (Recommended, but can be difficult) Implement FDD in GV
@@ -158,3 +162,4 @@ s = a + b = 4*(a2+b2) + 2*(a1+b1) + (a0+b0)
 一個有趣的方向是做 **hybrid DD**：根據電路的不同部分自動選擇最適合的 DD 類型。例如，對 datapath 部分用 *BMD（利用算術結構），對 control logic 部分用 BDD（通用性好）。這需要在不同 DD 表示之間做轉換，可能可以透過 compose 操作實現。
 
 另一個想法是探索 **ZDD 在 SAT solving 輔助** 中的應用。ZDD 擅長表示稀疏集合族，而 SAT solver 的 learned clause database 本質上就是一個 clause 的集合族。如果能用 ZDD 壓縮 clause database，或許能加速 SAT solving 的某些步驟。
+-->
