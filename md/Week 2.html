@@ -14,6 +14,8 @@
         <link rel="prev" href="Week%201.html">
       
       
+        <link rel="next" href="Week%203.html">
+      
       
         
       
@@ -2182,6 +2184,10 @@ is now available!
       
         
       
+        
+      
+        
+      
     
     
     
@@ -2396,6 +2402,62 @@ is now available!
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Week%203.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Week 3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Week%204.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Week 4
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2478,10 +2540,19 @@ is now available!
 <h1 id="week-2">Week 2<a class="headerlink" href="#week-2" title="Permanent link"></a></h1>
 <h2 id="ln-how-to-verify-the-correctness-of-your-rtl-design">[LN] How to verify the correctness of your (RTL) design?<a class="headerlink" href="#ln-how-to-verify-the-correctness-of-your-rtl-design" title="Permanent link"></a></h2>
 <h3 id="how-do-you-know-your-implementation-is-correct">How do you know your implementation is correct?<a class="headerlink" href="#how-do-you-know-your-implementation-is-correct" title="Permanent link"></a></h3>
-<p>採用 simulation-based verification：先以 FSM 實作販賣機 RTL，再用 testbench 對設計施加不同輸入，觀察輸出是否符合規格。</p>
-<p>RTL 的核心策略是：只有在 SERVICE_ON 且 itemTypeIn != ITEM_NONE 時接受請求；若金額不足或找不開，則不出貨並退回輸入硬幣；reset 後每種硬幣初始庫存為 2。</p>
-<p>在找零實作上，採用 greedy，也就是依序優先使用較大面額硬幣（50 → 10 → 5 → 1）來找零。</p>
-<p>Testbench 目前採用 directed tests，針對 reset、成功購買、退幣、找零、BUSY/OFF 狀態插入 request，以及庫存上限 7 等關鍵情況逐一驗證，最後統計 PASS、FAIL 與 PASS RATE。</p>
+<p>我採用 simulation-based verification 來驗證我的販賣機 RTL。整個過程分成三步：先根據 spec 寫出 RTL design，再寫 testbench 去驅動它，最後觀察 simulation 結果是否符合規格。</p>
+<p><strong>設計決策過程</strong></p>
+<p>拿到 spec 之後，我先把販賣機的行為拆解成一個 3-state FSM：<code>SERVICE_ON</code>（等待 request）→ <code>SERVICE_BUSY</code>（計算交易）→ <code>SERVICE_OFF</code>（展示結果）→ 回到 <code>SERVICE_ON</code>。我選擇把所有找零邏輯放在 <code>SERVICE_BUSY</code> 的組合邏輯裡一次算完，而不是像 GV 附的範例 <code>vending-simple.v</code> 那樣在 <code>SERVICE_BUSY</code> 裡用多個 cycle 逐幣找零。一次算完的好處是不需要追蹤中間狀態，邏輯比較簡單、不容易出錯。</p>
+<p>找零策略我選了 greedy：依序優先使用較大面額硬幣（50 → 10 → 5 → 1）。每個面額用一個 bounded for-loop 嘗試扣款，如果扣到零錢用完或餘額不夠就換下一個面額。如果最後 remainder 不是 0（表示找不開），就全額退幣、不出貨。</p>
+<p>另外一個重要的設計決策是<strong>庫存上限的飽和加法</strong>。每種硬幣的庫存用 3-bit 存（最大 7），投入硬幣時要把客戶的硬幣加進去，但不能超過 7。我用了一個 <code>sat_add3</code> function 做飽和加法，避免 overflow。</p>
+<p><strong>遇到的困難</strong></p>
+<p>最棘手的部分是找零邏輯的 corner case。例如：客戶投了足夠的錢，但機器裡的零錢組合剛好找不開（比如要找 8 塊但只有 50 和 10 的硬幣）。我一開始沒考慮到這種情況，testbench 跑下去才發現 bug。修正方式是在找零循環結束後檢查 <code>remainder</code>，不為零就退幣。</p>
+<p>另一個踩坑的地方是 <code>always @(*)</code> 裡的 latch inference。我一開始忘了在某個分支寫 <code>serviceTypeOut = state;</code>，Vivado 警告了 inferred latch。後來我把 <code>serviceTypeOut</code> 改成用獨立的 combinational always block 直接接 state，就解決了。</p>
+<p><strong>Testbench 策略</strong></p>
+<p>我寫了 18 個 directed test cases，涵蓋：reset 初始化、精確付款、金額不足退幣、找不開退幣、正確找零、BUSY/OFF 期間插入 request 應被忽略、庫存飽和上限等。最後統計 PASS/FAIL 和 PASS RATE，全部 18/18 通過。</p>
+<p><strong>Insight</strong></p>
+<p>做完之後我深刻體會到 directed test 的局限性——我寫了 18 個 test case 覺得「應該夠了」，但其實不可能覆蓋所有輸入組合。一個完整的測試應該要考慮的空間是：4 種硬幣 x 每種 0-3 枚 x 3 種商品 x 各種庫存狀態，排列組合的數量遠超過手動能寫的。這讓我理解為什麼需要 constrained random verification（Week 1 講到的 CRV）和 formal verification（後面幾週會學的 BDD/SAT）。手動寫 directed test 只是一個起點，不是終點。</p>
+<p>另外，我後來拿同樣的 spec 去讓 Cursor 生成 Verilog code，發現 AI 生出來的版本跟我自己寫的架構差異蠻大的——它用了 <code>integer</code> 型別做中間計算，coding style 也比較偏 behavioral。這讓我想到：AI 生成的 code 看起來能跑，但你不知道它的 quality 好不好、有沒有隱藏的 bug，所以「驗證」這件事變得更重要了。</p>
 <div class="collapse-code"><input checked="checked" id="__collapse0" name="__collapse0" type="checkbox" /><div class="highlight"><span class="filename">vending_machine.v</span><pre><span></span><code><span class="no">`timescale</span><span class="w"> </span><span class="mh">1</span><span class="n">ns</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mh">1</span><span class="n">ps</span>
 
 <span class="k">module</span><span class="w"> </span><span class="n">vending_machine</span><span class="w"> </span><span class="p">(</span>
@@ -3296,6 +3367,24 @@ FINAL RESULT: ALL TESTS PASSED
           </div>
         </a>
       
+      
+        <a
+          href="Week%203.html"
+          class="md-footer__link md-footer__link--next"
+          rel="next"
+        >
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Week 3
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+          </div>
+        </a>
       
     </nav>
   

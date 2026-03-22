@@ -1,0 +1,3596 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://peicd100.github.io/university-notes/md/Week%203.html">
+      
+      
+        <link rel="prev" href="Week%202.html">
+      
+      
+        <link rel="next" href="Week%204.html">
+      
+      
+        
+      
+      
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="../feed_rss_created.xml">
+        <link rel="alternate" type="application/rss+xml" title="RSS feed of updated content" href="../feed_rss_updated.xml">
+      
+      <link rel="icon" href="../logo/logo.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Week 3 - SoCV Learning Notes</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+
+      
+        <script src="https://unpkg.com/iframe-worker/shim"></script>
+      
+    
+<script src="../assets/pymdownx-extras/material-extra-theme-2ek1P7jT.js" type="text/javascript"></script>
+<script src="../assets/pymdownx-extras/material-extra-3rdparty-BUCF4rjN.js" type="text/javascript"></script>
+
+<!-- google 朗讀和翻譯 -->
+<!--
+把整段放進你的 tts.md（snippets）即可
+
+本版新增：
+- Auto scroll 開關（是否自動捲動到正在讀的句子），在語音選單中設定並記住
+- 自動翻到下一頁後續讀（優先用 rel="next" / footer next link；找不到才嘗試模擬按 n；並加入「未換頁就清旗標」保護）
+其餘維持：Auto 連播、Rate/Gap、EN 全英語（en-*）、dracula 不動
+-->
+
+<style>
+/* =========================
+   句子 TTS：文字 + 按鈕（避免 st/nd 跑位）
+   ========================= */
+:root{
+  --tts-accent: var(--md-primary-fg-color, #7ad3ff);
+  --tts-accent-strong: var(--md-accent-fg-color, var(--tts-accent));
+  --tts-surface: var(--peicd-card, rgba(22, 28, 38, 0.96));
+  --tts-surface-strong: var(--peicd-surface-2, rgba(20, 25, 35, 0.98));
+  --tts-border: rgba(122, 211, 255, 0.32);
+  --tts-border-soft: rgba(255, 255, 255, 0.08);
+  --tts-muted: rgba(255, 255, 255, 0.6);
+  --tts-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+[data-md-color-scheme="default"],
+[data-md-color-scheme="light"]{
+  --tts-surface: #ffffff;
+  --tts-surface-strong: #ffffff;
+  --tts-border: rgba(0, 0, 0, 0.16);
+  --tts-border-soft: rgba(0, 0, 0, 0.08);
+  --tts-muted: rgba(0, 0, 0, 0.6);
+  --tts-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
+}
+
+.tts-wrap{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.tts{ display: inline; }
+
+/* =========================
+   通用播放按鈕（圖形）
+   ========================= */
+.tts-btn{
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--tts-border-soft);
+  font: inherit;
+
+  width: 44px;
+  height: 44px;
+  padding: 0;
+
+  cursor: pointer;
+  line-height: 1;
+
+  display: inline-grid;
+  place-items: center;
+  position: relative;
+
+  color: var(--md-primary-fg-color);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  touch-action: manipulation;
+}
+.tts-btn:hover{
+  color: var(--md-primary-fg-color);
+  background: rgba(122, 211, 255, 0.12);
+  border-color: var(--tts-border);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+}
+.tts-btn[aria-pressed="true"]{
+  color: var(--md-primary-fg-color);
+  background: rgba(122, 211, 255, 0.16);
+  border-color: rgba(122, 211, 255, 0.5);
+  opacity: 0.95;
+}
+.tts-btn:focus-visible{
+  outline: 2px solid var(--tts-accent-strong);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+/* 播放：三角形 */
+.tts-btn[data-state="play"]::before{
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 9px 0 9px 14px;
+  border-color: transparent transparent transparent currentColor;
+  transform: translateX(1px);
+}
+/* 停止：方塊 */
+.tts-btn[data-state="stop"]::before{
+  content: "";
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  border-radius: 3px;
+}
+
+/* 手機按鈕加大 */
+@media (max-width: 600px){
+  .tts-btn{ width: 52px; height: 52px; }
+  .tts-btn[data-state="play"]::before{ border-width: 10px 0 10px 16px; }
+  .tts-btn[data-state="stop"]::before{ width: 18px; height: 18px; }
+}
+
+/* =========================
+   Header：塞進 .md-header__ellipsis 並靠右
+   ========================= */
+.md-header__ellipsis.tts-ellipsis-flex{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* 我們插入的 header 控制容器（你指定） */
+#tts-header-control{
+  margin-left: auto;
+  margin-right: -19px;
+  /* transform: translateY(-1px); */
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+/* =========================
+   Header 喇叭按鈕：無邊框、hover 不變色
+   ========================= */
+#tts-header-voice-toggle{
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+
+  border: 0 !important;
+  background: transparent;
+  color: inherit;
+
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+#tts-header-voice-toggle:hover{
+  color: inherit !important;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+#tts-header-voice-toggle:focus-visible{
+  outline: 2px solid var(--md-accent-fg-color, currentColor);
+  outline-offset: 2px;
+}
+#tts-header-voice-toggle svg{
+  width: 22px;
+  height: 22px;
+  display:block;
+  fill: currentColor !important;
+}
+
+/* 亮色模式：圈圈底色較深主題色、圖示白色 */
+[data-md-color-scheme="default"] #tts-header-voice-toggle,
+[data-md-color-scheme="light"]   #tts-header-voice-toggle{
+  background: transparent !important;
+  color: inherit !important;
+  border-color: transparent !important;
+}
+
+/* 黑暗模式（dracula）時，喇叭顏色 = 內文文字色 */
+[data-md-color-scheme="dracula"] #tts-header-voice-toggle{
+  background: transparent !important;
+  color: var(--md-default-fg-color, currentColor) !important;
+}
+
+/* =========================
+   Voice Panel（Portal 到 body）+ 自製 dropdown
+   ========================= */
+#tts-voice-panel-portal{
+  position: fixed;
+  z-index: 9998;
+  display: none;
+
+  min-width: min(520px, 92vw);
+  padding: 12px 14px;
+  border-radius: 16px;
+
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)), var(--tts-surface);
+  border: 1px solid var(--tts-border-soft);
+  box-shadow: var(--tts-shadow);
+  backdrop-filter: blur(12px);
+
+  font-size: 1rem;
+  font-weight: normal;
+
+  max-width: calc(100vw - 16px);
+  box-sizing: border-box;
+
+  max-height: min(60vh, calc(100vh - 120px));
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+#tts-voice-panel-portal.open{
+  display: block;
+  animation: ttsPopIn .12s ease-out;
+}
+@keyframes ttsPopIn{
+  from{ transform: scale(.98); opacity: .0; }
+  to  { transform: scale(1); opacity: 1; }
+}
+
+.tts-vp-row{
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  align-items: start;
+  gap: 10px;
+  margin: 6px 0;
+  padding: 6px 2px;
+}
+.tts-vp-row + .tts-vp-row{
+  border-top: 1px solid var(--tts-border-soft);
+  margin-top: 10px;
+  padding-top: 12px;
+}
+.tts-vp-row .lbl{
+  color: var(--tts-muted);
+  padding-top: 6px;
+  user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.6rem;
+}
+
+/* =========================
+   Auto（自動朗讀）按鈕：放在語言選擇左側
+   ========================= */
+#tts-autoread-toggle{
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  border: 1px solid var(--tts-border-soft);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  font: inherit;
+  line-height: 1;
+  user-select: none;
+}
+#tts-autoread-toggle:focus-visible{
+  outline: 2px solid var(--md-accent-fg-color, currentColor);
+  outline-offset: 2px;
+}
+#tts-autoread-toggle .dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: .75;
+}
+#tts-autoread-toggle[data-mode="armed"]{
+  border-color: var(--md-accent-fg-color, rgba(255,255,255,.45));
+}
+#tts-autoread-toggle[data-mode="armed"] .dot{
+  opacity: 1;
+}
+#tts-autoread-toggle[data-mode="running"]{
+  border-color: var(--md-accent-fg-color, rgba(255,255,255,.55));
+}
+#tts-autoread-toggle[data-mode="running"] .dot{
+  opacity: 1;
+}
+#tts-autoread-hint{
+  padding-top: 4px;
+  font-size: 0.88rem;
+  opacity: .85;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+/* =========================
+   設定列（Rate / Gap / Auto scroll）
+   ========================= */
+.tts-kv{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.tts-kv input[type="range"]{
+  width: 100%;
+  accent-color: var(--md-primary-fg-color);
+}
+.tts-kv .val{
+  min-width: 74px;
+  text-align: right;
+  opacity: .85;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+/* Auto scroll toggle */
+.tts-toggle-btn{
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  font: inherit;
+  font-size: 1rem;
+  padding: 10px 12px;
+  border-radius: 12px;
+
+  border: 1px solid var(--tts-border-soft);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  cursor: pointer;
+
+  text-align: left;
+}
+.tts-toggle-btn:hover{
+  border-color: var(--tts-border);
+  background: rgba(122, 211, 255, 0.08);
+}
+.tts-toggle-btn:focus-visible{
+  outline: 2px solid var(--md-accent-fg-color, currentColor);
+  outline-offset: 2px;
+}
+.tts-toggle-btn .state{
+  opacity: .9;
+  user-select: none;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--tts-border-soft);
+}
+.tts-toggle-btn[data-on="true"] .state{
+  border-color: var(--tts-border);
+}
+
+/* =========================
+   Dropdown
+   ========================= */
+.tts-dd-btn{
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  font: inherit;
+  font-size: 1rem;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--tts-border-soft);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  cursor: pointer;
+
+  text-align: left;
+}
+.tts-dd-btn:hover{
+  border-color: var(--tts-border);
+  background: rgba(122, 211, 255, 0.08);
+}
+.tts-dd-btn:focus-visible{
+  outline: 2px solid var(--md-accent-fg-color, currentColor);
+  outline-offset: 2px;
+}
+.tts-dd-btn .chev{
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  opacity: .85;
+  flex: 0 0 auto;
+}
+
+.tts-dd-list{
+  margin-top: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--tts-border-soft);
+  background: var(--tts-surface-strong);
+  overflow: auto;
+
+  max-height: min(42vh, 320px);
+  display: none;
+}
+.tts-dd.open .tts-dd-list{ display: block; }
+
+.tts-dd-item{
+  padding: 10px 10px;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1.25;
+  border-bottom: 1px solid var(--tts-border-soft);
+}
+.tts-dd-item:last-child{ border-bottom: 0; }
+.tts-dd-item:hover{
+  background: rgba(122, 211, 255, 0.08);
+}
+.tts-dd-item.active{
+  background: rgba(122, 211, 255, 0.14);
+  outline: 1px solid rgba(122, 211, 255, 0.35);
+}
+
+/* dracula：更黑（暗色不動） */
+[data-md-color-scheme="dracula"] #tts-voice-panel-portal{
+  background: #1b1d24;
+  border-color: rgba(255,255,255,.18);
+}
+[data-md-color-scheme="dracula"] .tts-dd-list{
+  background: #13151b;
+  border-color: rgba(255,255,255,.18);
+}
+
+/* =========================
+   亮色模式：語音清單白底；只有 active 變暗
+   ========================= */
+[data-md-color-scheme="default"] #tts-voice-panel-portal,
+[data-md-color-scheme="light"]   #tts-voice-panel-portal{
+  background: #fff;
+  border-color: rgba(0,0,0,.12);
+  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+  color: rgba(0,0,0,.87);
+}
+[data-md-color-scheme="default"] #tts-voice-panel-portal .tts-vp-row .lbl,
+[data-md-color-scheme="light"]   #tts-voice-panel-portal .tts-vp-row .lbl{
+  color: rgba(0,0,0,.72);
+}
+[data-md-color-scheme="default"] #tts-autoread-toggle,
+[data-md-color-scheme="light"]   #tts-autoread-toggle{
+  border-color: rgba(0,0,0,.18);
+}
+[data-md-color-scheme="default"] #tts-autoread-hint,
+[data-md-color-scheme="light"]   #tts-autoread-hint{
+  color: rgba(0,0,0,.72);
+}
+[data-md-color-scheme="default"] .tts-toggle-btn,
+[data-md-color-scheme="light"]   .tts-toggle-btn{
+  background: #fff;
+  color: rgba(0,0,0,.87);
+  border-color: rgba(0,0,0,.18);
+}
+[data-md-color-scheme="default"] .tts-toggle-btn .state,
+[data-md-color-scheme="light"]   .tts-toggle-btn .state{
+  border-color: rgba(0,0,0,.18);
+}
+[data-md-color-scheme="default"] #tts-voice-panel-portal .tts-dd-btn,
+[data-md-color-scheme="light"]   #tts-voice-panel-portal .tts-dd-btn{
+  background: #fff;
+  color: rgba(0,0,0,.87);
+  border-color: rgba(0,0,0,.18);
+}
+[data-md-color-scheme="default"] #tts-voice-panel-portal .tts-dd-list,
+[data-md-color-scheme="light"]   #tts-voice-panel-portal .tts-dd-list{
+  background: #fff;
+  border-color: rgba(0,0,0,.12);
+}
+[data-md-color-scheme="default"] #tts-voice-panel-portal .tts-dd-item,
+[data-md-color-scheme="light"]   #tts-voice-panel-portal .tts-dd-item{
+  background: #fff;
+  color: rgba(0,0,0,.87);
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+[data-md-color-scheme="default"] #tts-voice-panel-portal .tts-dd-item:hover,
+[data-md-color-scheme="light"]   #tts-voice-panel-portal .tts-dd-item:hover{
+  background: rgba(0,0,0,.06);
+}
+[data-md-color-scheme="default"] #tts-voice-panel-portal .tts-dd-item.active,
+[data-md-color-scheme="light"]   #tts-voice-panel-portal .tts-dd-item.active{
+  background: rgba(0,0,0,.16);
+  outline: 1px solid rgba(0,0,0,.16);
+}
+
+/* =========================
+   反白浮動工具（播放 + 翻譯）
+   ========================= */
+#tts-selection-pop{
+  position: fixed;
+  z-index: 9999;
+  display: none;
+
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)), var(--tts-surface);
+  border: 1px solid var(--tts-border-soft);
+  box-shadow: var(--tts-shadow);
+  backdrop-filter: blur(12px);
+
+  align-items: center;
+  gap: 12px;
+  max-width: min(720px, 92vw);
+}
+#tts-selection-zh{
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--md-default-fg-color, #ddd);
+  word-break: break-word;
+  max-width: min(640px, 78vw);
+}
+#tts-selection-zh .muted{ opacity: .75; }
+</style>
+
+<script>
+(function () {
+  if (window.__TTS_TOOLKIT__ && typeof window.__TTS_TOOLKIT__.scheduleEnhance === "function") {
+    window.__TTS_TOOLKIT__.scheduleEnhance();
+    return;
+  }
+
+  /* =========================
+     你可以改的地方
+     ========================= */
+  const DEFAULT_LANG_EN = "en-US";
+  const DEFAULT_NAME_EN_INCLUDES = "Google US English";
+
+  const DEFAULT_LANG_ZH = "zh-TW";
+  const DEFAULT_NAME_ZH_INCLUDES = "Google";
+
+  const SELECTION_MAX_CHARS = 500;
+  const TRANSLATE_TO = "zh-TW";
+  const TRANSLATE_FROM = "en"; // 也可改 "auto"
+
+  const MAX_VOICES_RENDER = 2000;
+
+  const RATE_MIN = 0.1;
+  const RATE_MAX = 1.5;
+  const RATE_STEP = 0.05;
+
+  const GAP_MIN = 0;
+  const GAP_MAX = 2000;
+  const GAP_STEP = 50;
+
+  const DEFAULT_RATE = 1.0;
+  const DEFAULT_GAP_MS = 400;
+
+  // Auto scroll 預設開
+  const DEFAULT_AUTO_SCROLL = true;
+
+  // 同網域多站台時，避免和其他 GitHub Pages 專案共用同一組 localStorage key
+  const LS_NAMESPACE = "university-notes:";
+
+  // 自動翻到下一頁後續讀（用 localStorage 做跨頁續讀）
+  const LS_AUTO_RESUME = "ttsAutoResumeNextPageTs";
+  const AUTO_RESUME_TTL_MS = 5 * 60 * 1000; // 續讀旗標最長保留 5 分鐘，避免意外卡住
+  /* ========================= */
+
+  let currentBtn = null;
+  let activeUtterances = [];
+  let onSpeakDone = null;
+  const translateCache = new Map();
+
+  const LS_VOICE_EN = "ttsVoiceKeyEN";
+  const LS_VOICE_ZH = "ttsVoiceKeyZH";
+  let voiceKeyEN = safeGetLS(LS_VOICE_EN);
+  let voiceKeyZH = safeGetLS(LS_VOICE_ZH);
+
+  const LS_RATE = "ttsRate";
+  const LS_GAP  = "ttsAutoGapMs";
+
+  const LS_AUTO_SCROLL = "ttsAutoScroll";
+
+  let ttsRate = safeGetNumberLS(LS_RATE, DEFAULT_RATE);
+  let autoGapMs = safeGetNumberLS(LS_GAP, DEFAULT_GAP_MS);
+
+  let autoScrollEnabled = safeGetBoolLS(LS_AUTO_SCROLL, DEFAULT_AUTO_SCROLL);
+
+  let globalEventsBound = false;
+  let observer = null;
+  let observerTarget = null;
+  let scheduled = false;
+
+  /* =========================
+     Auto（自動朗讀）+ 跨頁
+     ========================= */
+  function getNextPageUrl(){
+    // MkDocs/Material 常見：head 裡有 <link rel="next" href="...">
+    const link = document.querySelector('link[rel="next"]');
+    if (link && link.href) return link.href;
+
+    // 有些主題會用 a[rel="next"]
+    const aRel = document.querySelector('a[rel="next"]');
+    if (aRel && aRel.href) return aRel.href;
+
+    // Material footer next
+    const footerNext = document.querySelector('.md-footer__link--next a');
+    if (footerNext && footerNext.href) return footerNext.href;
+
+    // pagination
+    const pagNext = document.querySelector('a.md-pagination__link--next');
+    if (pagNext && pagNext.href) return pagNext.href;
+
+    return null;
+  }
+
+  function markResumeOnNextPage(){
+    safeSetLS(LS_AUTO_RESUME, String(Date.now()));
+  }
+
+  function clearResumeFlag(){
+    safeRemoveLS(LS_AUTO_RESUME);
+  }
+
+  function gotoNextPageForAuto(){
+    const url = getNextPageUrl();
+    if (url){
+      markResumeOnNextPage();
+      window.location.assign(url);
+      return true;
+    }
+
+    // 找不到 next 連結時，最後才嘗試模擬按 n（你提到使用者按 n）
+    try{
+      markResumeOnNextPage();
+      const before = location.href;
+
+      const ev = new KeyboardEvent("keydown", { key: "n", code: "KeyN", bubbles: true });
+      document.dispatchEvent(ev);
+
+      // 若 800ms 內沒有換頁，視為失敗：清旗標並停止 auto
+      setTimeout(() => {
+        if (location.href === before) {
+          clearResumeFlag();
+          stopAuto();
+        }
+      }, 800);
+
+      return true;
+    } catch (_){
+      clearResumeFlag();
+      return false;
+    }
+  }
+
+  function resumeAutoIfRequested(){
+    const ts = safeGetNumberLS(LS_AUTO_RESUME, 0);
+    if (!ts) return;
+
+    // 避免舊旗標造成誤續讀
+    if (Date.now() - ts > AUTO_RESUME_TTL_MS){
+      clearResumeFlag();
+      return;
+    }
+
+    const root = getContentRoot();
+    const firstBtn = root && root.querySelector(".tts-wrap > button.tts-btn");
+
+    // 內容/按鈕還沒 attach 好：先別清旗標，等下一次 enhance 再試
+    if (!firstBtn) return;
+
+    // 成功抓到第一句：清旗標並開始連播
+    clearResumeFlag();
+    startAutoFrom(firstBtn);
+  }
+
+  let autoSelectMode = false;
+  let autoRunning = false;
+  let autoQueue = [];
+  let autoIndex = 0;
+
+  function clamp(n, a, b){
+    n = Number(n);
+    if (!isFinite(n)) return a;
+    return Math.min(b, Math.max(a, n));
+  }
+
+  function updateAutoUI(){
+    const btn = document.getElementById("tts-autoread-toggle");
+    const hint = document.getElementById("tts-autoread-hint");
+    if (!btn) return;
+
+    let mode = "off";
+    if (autoRunning) mode = "running";
+    else if (autoSelectMode) mode = "armed";
+
+    btn.setAttribute("data-mode", mode);
+
+    if (hint) {
+      if (autoRunning) hint.textContent = "Auto reading… (press Auto to stop)";
+      else if (autoSelectMode) hint.textContent = "Pick a sentence button to start";
+      else hint.textContent = "Auto (continuous)";
+    }
+  }
+
+  function stopAuto(){
+    autoSelectMode = false;
+    autoRunning = false;
+    autoQueue = [];
+    autoIndex = 0;
+    updateAutoUI();
+  }
+
+  function toggleAuto(){
+    if (autoRunning){
+      stop({ cancelAuto: true });
+      return;
+    }
+    autoSelectMode = !autoSelectMode;
+    updateAutoUI();
+  }
+
+  function getSentenceTextFromBtn(btn){
+    const wrap = btn && btn.closest(".tts-wrap");
+    if (!wrap) return "";
+    const textSpan = wrap.querySelector(".tts");
+    const t = (textSpan && (textSpan.getAttribute("data-tts") || textSpan.textContent || "")) || "";
+    return t.trim();
+  }
+
+  function buildAutoQueueFrom(startBtn){
+    const root = getContentRoot();
+    const btns = Array.from(root.querySelectorAll(".tts-wrap > button.tts-btn"));
+    const idx = btns.indexOf(startBtn);
+    if (idx < 0) return [];
+    const out = [];
+    for (let i = idx; i < btns.length; i++){
+      const b = btns[i];
+      const text = getSentenceTextFromBtn(b);
+      if (text) out.push({ btn: b, text });
+    }
+    return out;
+  }
+
+  function scrollToSentence(btn){
+    const wrap = btn && btn.closest(".tts-wrap");
+    if (!wrap) return;
+    try {
+      wrap.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+    } catch (_) {
+      try { wrap.scrollIntoView(true); } catch (_) {}
+    }
+  }
+
+  function startAutoFrom(startBtn){
+    autoQueue = buildAutoQueueFrom(startBtn);
+    autoIndex = 0;
+
+    if (!autoQueue.length){
+      stopAuto();
+      return;
+    }
+
+    autoRunning = true;
+    autoSelectMode = false;
+    updateAutoUI();
+
+    playAutoCurrent();
+  }
+
+  function playAutoCurrent(){
+    if (!autoRunning) return;
+    const item = autoQueue[autoIndex];
+    if (!item){
+      stopAuto();
+      return;
+    }
+
+    // 依設定決定是否自動捲動
+    if (autoScrollEnabled) scrollToSentence(item.btn);
+
+    speakAuto(item.text, item.btn, { auto: true });
+  }
+
+  function advanceAuto(){
+    if (!autoRunning) return;
+    autoIndex += 1;
+
+    // 本頁播完：嘗試前往下一頁並續讀
+    if (autoIndex >= autoQueue.length){
+      // 先結束本頁 auto 狀態（避免重入）
+      autoRunning = false;
+      autoSelectMode = false;
+      updateAutoUI();
+
+      // 若有下一頁就導頁；沒有就結束
+      const ok = gotoNextPageForAuto();
+      if (!ok){
+        clearResumeFlag();
+        stopAuto();
+      }
+      return;
+    }
+
+    playAutoCurrent();
+  }
+
+  /* =========================
+     localStorage helpers
+     ========================= */
+  function getScopedLSKey(key){
+    return LS_NAMESPACE + key;
+  }
+
+  function safeGetRawLS(key){
+    try {
+      const scopedKey = getScopedLSKey(key);
+      const scopedVal = localStorage.getItem(scopedKey);
+      if (scopedVal !== null && scopedVal !== undefined) return scopedVal;
+
+      const legacyVal = localStorage.getItem(key);
+      if (legacyVal !== null && legacyVal !== undefined) {
+        localStorage.setItem(scopedKey, legacyVal);
+        localStorage.removeItem(key);
+        return legacyVal;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  function safeRemoveLS(key){
+    try {
+      localStorage.removeItem(getScopedLSKey(key));
+      localStorage.removeItem(key);
+    } catch (_) {}
+  }
+
+  function safeGetLS(key){
+    return safeGetRawLS(key);
+  }
+  function safeSetLS(key, val){
+    try { localStorage.setItem(getScopedLSKey(key), val); } catch (_) {}
+  }
+  function safeGetNumberLS(key, def){
+    const v = safeGetRawLS(key);
+    if (v === null || v === undefined) return def;
+    const n = Number(v);
+    return isFinite(n) ? n : def;
+  }
+  function safeGetBoolLS(key, def){
+    const v = safeGetRawLS(key);
+    if (v === null || v === undefined) return def;
+    // "0"/"false" => false，其餘視為 true
+    const s = String(v).toLowerCase().trim();
+    if (s === "0" || s === "false" || s === "off") return false;
+    if (s === "1" || s === "true"  || s === "on")  return true;
+    return def;
+  }
+
+  function supported() {
+    return ("speechSynthesis" in window) && ("SpeechSynthesisUtterance" in window);
+  }
+
+  function warmVoices() {
+    try { speechSynthesis.getVoices(); } catch (_) {}
+  }
+  function getVoices() {
+    return speechSynthesis.getVoices() || [];
+  }
+
+  function voiceKey(v){
+    if (v && v.voiceURI) return "uri:" + v.voiceURI;
+    return "nl:" + (v.lang || "") + "||" + (v.name || "");
+  }
+  function findVoiceByKey(key){
+    if (!key) return null;
+    const voices = getVoices();
+    for (const v of voices) if (voiceKey(v) === key) return v;
+    return null;
+  }
+
+  function isZhLang(lang){
+    const l = (lang || "").toLowerCase();
+    return l.startsWith("zh");
+  }
+  function isEnLang(lang){
+    const l = (lang || "").toLowerCase();
+    return l.startsWith("en"); // 所有英語 en-*
+  }
+
+  function pickDefaultVoiceKey(voices, langNeedle, nameIncludes){
+    if (!voices.length) return null;
+
+    const needle = (nameIncludes || "").toLowerCase();
+    const langN = (langNeedle || "").toLowerCase();
+
+    let v = voices.find(x => (x.lang||"").toLowerCase() === langN && (x.name||"").toLowerCase().includes(needle));
+    if (v) return voiceKey(v);
+
+    v = voices.find(x => (x.name||"").toLowerCase().includes(needle));
+    if (v) return voiceKey(v);
+
+    v = voices.find(x => (x.lang||"").toLowerCase() === langN);
+    if (v) return voiceKey(v);
+
+    const prefix = langN.split("-")[0];
+    v = voices.find(x => (x.lang||"").toLowerCase().startsWith(prefix));
+    if (v) return voiceKey(v);
+
+    return voiceKey(voices[0]);
+  }
+
+  function ensureVoiceKeys(){
+    const voices = getVoices();
+    if (!voices.length) return;
+
+    if (!voiceKeyEN || !findVoiceByKey(voiceKeyEN)) {
+      voiceKeyEN =
+        pickDefaultVoiceKey(voices.filter(v => isEnLang(v.lang)), DEFAULT_LANG_EN, DEFAULT_NAME_EN_INCLUDES)
+        || pickDefaultVoiceKey(voices, DEFAULT_LANG_EN, DEFAULT_NAME_EN_INCLUDES);
+      if (voiceKeyEN) safeSetLS(LS_VOICE_EN, voiceKeyEN);
+    }
+
+    if (!voiceKeyZH || !findVoiceByKey(voiceKeyZH)) {
+      voiceKeyZH =
+        pickDefaultVoiceKey(voices.filter(v => isZhLang(v.lang)), DEFAULT_LANG_ZH, DEFAULT_NAME_ZH_INCLUDES)
+        || pickDefaultVoiceKey(voices, DEFAULT_LANG_ZH, DEFAULT_NAME_ZH_INCLUDES);
+      if (voiceKeyZH) safeSetLS(LS_VOICE_ZH, voiceKeyZH);
+    }
+  }
+
+  function getVoiceForLangTag(tag){
+    ensureVoiceKeys();
+    if (tag === "zh") return findVoiceByKey(voiceKeyZH) || null;
+    return findVoiceByKey(voiceKeyEN) || null;
+  }
+
+  // ✅ 修正：stop() 乾淨且可解析
+  function stop(opts) {
+    const o = opts || {};
+    const cancelAuto = (o.cancelAuto !== false);
+
+    try { speechSynthesis.cancel(); } catch (_) {}
+    activeUtterances = [];
+    onSpeakDone = null;
+
+    if (currentBtn) {
+      currentBtn.setAttribute("data-state", "play");
+      currentBtn.setAttribute("aria-pressed", "false");
+      currentBtn = null;
+    }
+
+    if (cancelAuto) {
+      clearResumeFlag();   // 使用者手動停止，就不要跨頁續讀
+      stopAuto();
+    }
+  }
+
+  function splitByLang(text){
+    const s = (text || "");
+    const out = [];
+    let buf = "";
+    let cur = null;
+
+    function flush(){
+      const t = buf.trim();
+      if (t) out.push({ lang: cur || "en", text: t });
+      buf = "";
+    }
+    function charType(ch){
+      if (/[\u4e00-\u9fff\u3400-\u4dbf]/.test(ch)) return "zh";
+      if (/[A-Za-z]/.test(ch)) return "en";
+      return "other";
+    }
+
+    for (let i=0;i<s.length;i++){
+      const ch = s[i];
+      const t = charType(ch);
+      const lang = (t === "other") ? (cur || "en") : t;
+
+      if (cur === null) cur = lang;
+      if (lang !== cur){
+        flush();
+        cur = lang;
+      }
+      buf += ch;
+    }
+    flush();
+    return out.length ? out : [{ lang: "en", text: s.trim() }];
+  }
+
+  function speakAuto(text, btn, opts){
+    if (!supported()) return;
+
+    const t = (text || "").trim();
+    if (!t) return;
+
+    const o = opts || {};
+    const isAuto = !!o.auto;
+
+    const pressed = btn.getAttribute("aria-pressed") === "true";
+    if (currentBtn === btn && pressed) {
+      stop({ cancelAuto: true });
+      return;
+    }
+
+    stop({ cancelAuto: !isAuto });
+
+    btn.setAttribute("data-state", "stop");
+    btn.setAttribute("aria-pressed", "true");
+    currentBtn = btn;
+
+    onSpeakDone = isAuto ? function(){
+      if (autoRunning) setTimeout(advanceAuto, clamp(autoGapMs, GAP_MIN, GAP_MAX));
+    } : null;
+
+    const segs = splitByLang(t);
+    activeUtterances = segs.map(seg => {
+      const u = new SpeechSynthesisUtterance(seg.text);
+
+      u.rate = clamp(ttsRate, RATE_MIN, RATE_MAX);
+      u.pitch = 1.0;
+
+      const v = getVoiceForLangTag(seg.lang);
+      if (v) {
+        u.voice = v;
+        u.lang = v.lang || (seg.lang === "zh" ? DEFAULT_LANG_ZH : DEFAULT_LANG_EN);
+      } else {
+        u.lang = (seg.lang === "zh" ? DEFAULT_LANG_ZH : DEFAULT_LANG_EN);
+      }
+      return u;
+    });
+
+    playNext();
+  }
+
+  function playNext(){
+    if (!activeUtterances.length){
+      const cb = onSpeakDone;
+      onSpeakDone = null;
+
+      // 收尾：只重置按鈕，不清 auto（讓 auto 邏輯決定下一步）
+      stop({ cancelAuto: false });
+
+      if (typeof cb === "function") cb();
+      return;
+    }
+
+    const u = activeUtterances.shift();
+    u.onend = () => playNext();
+    u.onerror = () => stop({ cancelAuto: true });
+
+    warmVoices();
+    try { speechSynthesis.speak(u); } catch (_) { stop({ cancelAuto: true }); }
+  }
+
+  function attachSentenceButtons(root){
+    const scope = root || document;
+    scope.querySelectorAll(".tts").forEach(textSpan => {
+      let wrap = textSpan.closest(".tts-wrap");
+      if (!wrap) {
+        wrap = document.createElement("span");
+        wrap.className = "tts-wrap";
+        textSpan.parentNode.insertBefore(wrap, textSpan);
+        wrap.appendChild(textSpan);
+      }
+      if (wrap.querySelector(":scope > button.tts-btn")) return;
+
+      const pure = (textSpan.getAttribute("data-tts") || textSpan.textContent || "").trim();
+      textSpan.setAttribute("data-tts", pure);
+
+      const btn = document.createElement("button");
+      btn.className = "tts-btn";
+      btn.type = "button";
+      btn.setAttribute("data-state", "play");
+      btn.setAttribute("aria-pressed", "false");
+      btn.setAttribute("aria-label", "Play/Stop");
+
+      btn.addEventListener("pointerdown", warmVoices, { passive: true });
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (autoSelectMode) {
+          startAutoFrom(btn);
+          return;
+        }
+        if (autoRunning) {
+          startAutoFrom(btn);
+          return;
+        }
+
+        speakAuto(textSpan.getAttribute("data-tts"), btn, { auto: false });
+      });
+
+      wrap.appendChild(btn);
+    });
+  }
+
+  function getHeaderEllipsis(){
+    return document.querySelector(".md-header__ellipsis");
+  }
+
+  function ensureHeaderControl(){
+    const ellipsis = getHeaderEllipsis();
+    if (!ellipsis) return false;
+
+    ellipsis.classList.add("tts-ellipsis-flex");
+    if (document.getElementById("tts-header-control")) return true;
+
+    const wrap = document.createElement("span");
+    wrap.id = "tts-header-control";
+
+    const toggle = document.createElement("button");
+    toggle.id = "tts-header-voice-toggle";
+    toggle.type = "button";
+    toggle.setAttribute("aria-label", "Choose voices");
+    toggle.innerHTML = `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 10v4c0 1.1.9 2 2 2h3l4 3V5L8 8H5c-1.1 0-2 .9-2 2zm13.5 2c0-1.77-1.02-3.29-2.5-4.03v8.06c1.48-.74 2.5-2.26 2.5-4.03z"/>
+      </svg>
+    `;
+
+    toggle.addEventListener("pointerdown", warmVoices, { passive: true });
+    toggle.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openOrToggleVoicePanel(toggle);
+    });
+
+    wrap.appendChild(toggle);
+    ellipsis.appendChild(wrap);
+
+    return true;
+  }
+
+  function makeAutoRow(){
+    const row = document.createElement("div");
+    row.className = "tts-vp-row";
+    row.innerHTML = `
+      <button id="tts-autoread-toggle" type="button" aria-label="Auto reading">
+        <span class="dot"></span>
+      </button>
+      <div id="tts-autoread-hint">Auto (continuous)</div>
+    `;
+    return row;
+  }
+
+  function makeRateRow(){
+    const row = document.createElement("div");
+    row.className = "tts-vp-row";
+    row.innerHTML = `
+      <div class="lbl">Rate</div>
+      <div class="tts-kv">
+        <input id="tts-rate" type="range" min="${RATE_MIN}" max="${RATE_MAX}" step="${RATE_STEP}" />
+        <span id="tts-rate-val" class="val"></span>
+      </div>
+    `;
+    return row;
+  }
+
+  function makeGapRow(){
+    const row = document.createElement("div");
+    row.className = "tts-vp-row";
+    row.innerHTML = `
+      <div class="lbl">Gap</div>
+      <div class="tts-kv">
+        <input id="tts-gap" type="range" min="${GAP_MIN}" max="${GAP_MAX}" step="${GAP_STEP}" />
+        <span id="tts-gap-val" class="val"></span>
+      </div>
+    `;
+    return row;
+  }
+
+  function makeScrollRow(){
+    const row = document.createElement("div");
+    row.className = "tts-vp-row";
+    row.innerHTML = `
+      <div class="lbl">Scroll</div>
+      <button id="tts-autoscroll-toggle" class="tts-toggle-btn" type="button" aria-label="Toggle auto scroll">
+        <span class="txt">Auto scroll</span>
+        <span id="tts-autoscroll-val" class="state"></span>
+      </button>
+    `;
+    return row;
+  }
+
+  function updateSettingsUI(){
+    ttsRate = clamp(ttsRate, RATE_MIN, RATE_MAX);
+    autoGapMs = Math.round(clamp(autoGapMs, GAP_MIN, GAP_MAX));
+
+    const rateEl = document.getElementById("tts-rate");
+    const rateVal = document.getElementById("tts-rate-val");
+    if (rateEl) rateEl.value = String(ttsRate);
+    if (rateVal) rateVal.textContent = ttsRate.toFixed(2).replace(/\.00$/,"") + "x";
+
+    const gapEl = document.getElementById("tts-gap");
+    const gapVal = document.getElementById("tts-gap-val");
+    if (gapEl) gapEl.value = String(autoGapMs);
+    if (gapVal) gapVal.textContent = autoGapMs + "ms";
+
+    const scBtn = document.getElementById("tts-autoscroll-toggle");
+    const scVal = document.getElementById("tts-autoscroll-val");
+    if (scBtn) scBtn.setAttribute("data-on", autoScrollEnabled ? "true" : "false");
+    if (scVal) scVal.textContent = autoScrollEnabled ? "ON" : "OFF";
+  }
+
+  function bindSettingsControlsOnce(){
+    const rateEl = document.getElementById("tts-rate");
+    const gapEl  = document.getElementById("tts-gap");
+    const scBtn  = document.getElementById("tts-autoscroll-toggle");
+
+    if (rateEl && !rateEl.__tts_bound__){
+      rateEl.__tts_bound__ = true;
+      rateEl.addEventListener("input", () => {
+        ttsRate = clamp(Number(rateEl.value), RATE_MIN, RATE_MAX);
+        safeSetLS(LS_RATE, String(ttsRate));
+        updateSettingsUI();
+      });
+      rateEl.addEventListener("change", () => {
+        ttsRate = clamp(Number(rateEl.value), RATE_MIN, RATE_MAX);
+        safeSetLS(LS_RATE, String(ttsRate));
+        updateSettingsUI();
+      });
+    }
+
+    if (gapEl && !gapEl.__tts_bound__){
+      gapEl.__tts_bound__ = true;
+      gapEl.addEventListener("input", () => {
+        autoGapMs = Math.round(clamp(Number(gapEl.value), GAP_MIN, GAP_MAX));
+        safeSetLS(LS_GAP, String(autoGapMs));
+        updateSettingsUI();
+      });
+      gapEl.addEventListener("change", () => {
+        autoGapMs = Math.round(clamp(Number(gapEl.value), GAP_MIN, GAP_MAX));
+        safeSetLS(LS_GAP, String(autoGapMs));
+        updateSettingsUI();
+      });
+    }
+
+    if (scBtn && !scBtn.__tts_bound__){
+      scBtn.__tts_bound__ = true;
+      scBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        autoScrollEnabled = !autoScrollEnabled;
+        safeSetLS(LS_AUTO_SCROLL, autoScrollEnabled ? "1" : "0");
+        updateSettingsUI();
+      });
+    }
+  }
+
+  function ensureVoicePanelPortal(){
+    let panel = document.getElementById("tts-voice-panel-portal");
+    if (panel) {
+      if (!panel.querySelector("#tts-autoread-toggle")) {
+        panel.insertBefore(makeAutoRow(), panel.firstChild);
+      }
+
+      // 補 Rate/Gap/Scroll rows（固定在 Auto row 後面）
+      if (!panel.querySelector("#tts-rate") || !panel.querySelector("#tts-gap") || !panel.querySelector("#tts-autoscroll-toggle")) {
+        const autoBtn = panel.querySelector("#tts-autoread-toggle");
+        const autoRow = autoBtn ? autoBtn.closest(".tts-vp-row") : null;
+
+        const rateRow = panel.querySelector("#tts-rate") ? null : makeRateRow();
+        const gapRow  = panel.querySelector("#tts-gap") ? null : makeGapRow();
+        const scrRow  = panel.querySelector("#tts-autoscroll-toggle") ? null : makeScrollRow();
+
+        let anchor = autoRow;
+        if (anchor && rateRow) { anchor.insertAdjacentElement("afterend", rateRow); anchor = rateRow; }
+        if (anchor && gapRow)  { anchor.insertAdjacentElement("afterend", gapRow);  anchor = gapRow; }
+        if (anchor && scrRow)  { anchor.insertAdjacentElement("afterend", scrRow);  anchor = scrRow; }
+
+        if (!autoRow) {
+          if (scrRow) panel.insertBefore(scrRow, panel.firstChild);
+          if (gapRow) panel.insertBefore(gapRow, panel.firstChild);
+          if (rateRow) panel.insertBefore(rateRow, panel.firstChild);
+        }
+      }
+
+      const autoBtn = panel.querySelector("#tts-autoread-toggle");
+      if (autoBtn && !autoBtn.__tts_bound__) {
+        autoBtn.__tts_bound__ = true;
+        autoBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleAuto();
+        });
+      }
+
+      bindSettingsControlsOnce();
+      updateSettingsUI();
+      updateAutoUI();
+      return panel;
+    }
+
+    panel = document.createElement("div");
+    panel.id = "tts-voice-panel-portal";
+
+    panel.appendChild(makeAutoRow());
+    panel.appendChild(makeRateRow());
+    panel.appendChild(makeGapRow());
+    panel.appendChild(makeScrollRow());
+
+    panel.appendChild(makeDropdownRow("EN", "en"));
+    panel.appendChild(makeDropdownRow("ZH", "zh"));
+
+    document.body.appendChild(panel);
+
+    const autoBtn = panel.querySelector("#tts-autoread-toggle");
+    if (autoBtn) {
+      autoBtn.__tts_bound__ = true;
+      autoBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleAuto();
+      });
+    }
+
+    bindSettingsControlsOnce();
+    updateSettingsUI();
+    updateAutoUI();
+
+    return panel;
+  }
+
+  function makeDropdownRow(label, kind){
+    const row = document.createElement("div");
+    row.className = "tts-vp-row";
+
+    const lbl = document.createElement("div");
+    lbl.className = "lbl";
+    lbl.textContent = label;
+
+    const dd = document.createElement("div");
+    dd.className = "tts-dd";
+    dd.setAttribute("data-kind", kind);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "tts-dd-btn";
+    btn.innerHTML = `<span class="txt">Loading…</span><span class="chev"></span>`;
+    btn.addEventListener("pointerdown", warmVoices, { passive: true });
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleDropdown(kind);
+    });
+
+    const list = document.createElement("div");
+    list.className = "tts-dd-list";
+
+    dd.appendChild(btn);
+    dd.appendChild(list);
+
+    row.appendChild(lbl);
+    row.appendChild(dd);
+    return row;
+  }
+
+  function closeAllDropdowns(){
+    document.querySelectorAll("#tts-voice-panel-portal .tts-dd.open").forEach(x => x.classList.remove("open"));
+  }
+
+  function toggleDropdown(kind){
+    const panel = document.getElementById("tts-voice-panel-portal");
+    if (!panel) return;
+    const dd = panel.querySelector(`.tts-dd[data-kind="${kind}"]`);
+    if (!dd) return;
+
+    const isOpen = dd.classList.contains("open");
+    closeAllDropdowns();
+    if (!isOpen) dd.classList.add("open");
+  }
+
+  function voiceLabel(v){
+    return `${v.lang} — ${v.name}`;
+  }
+
+  function syncVoiceDropdowns(){
+    const panel = document.getElementById("tts-voice-panel-portal");
+    if (!panel) return;
+
+    const voices = getVoices();
+    ensureVoiceKeys();
+
+    const ddEN = panel.querySelector('.tts-dd[data-kind="en"]');
+    const ddZH = panel.querySelector('.tts-dd[data-kind="zh"]');
+
+    if (ddEN) fillDropdown(ddEN, voices, "en", voiceKeyEN);
+    if (ddZH) fillDropdown(ddZH, voices, "zh", voiceKeyZH);
+  }
+
+  function fillDropdown(dd, voices, kind, selectedKey){
+    const btnTxt = dd.querySelector(".tts-dd-btn .txt");
+    const list = dd.querySelector(".tts-dd-list");
+    list.innerHTML = "";
+
+    let listVoices;
+    if (kind === "en") {
+      const allEn = voices.filter(v => isEnLang(v.lang));
+      listVoices = allEn.length ? allEn : voices;
+    } else {
+      const zh = voices.filter(v => isZhLang(v.lang));
+      listVoices = zh.length ? zh : voices;
+    }
+
+    // 讓 en-US / en-CA 靠前，但仍保留全部 en-*
+    if (kind === "en" && listVoices.length) {
+      const score = (v) => {
+        const l = (v.lang || "").toLowerCase();
+        if (l === "en-us") return 0;
+        if (l === "en-ca") return 1;
+        if (l.startsWith("en-")) return 2;
+        return 3;
+      };
+      listVoices = listVoices.slice().sort((a,b) => {
+        const sa = score(a), sb = score(b);
+        if (sa !== sb) return sa - sb;
+        return String(a.name||"").localeCompare(String(b.name||""));
+      });
+    }
+
+    const trimmed = listVoices.slice(0, MAX_VOICES_RENDER);
+
+    const exists = trimmed.some(v => voiceKey(v) === selectedKey) || listVoices.some(v => voiceKey(v) === selectedKey);
+    if (!exists) {
+      const fallbackKey =
+        (kind === "zh")
+          ? pickDefaultVoiceKey(listVoices, "zh-TW", DEFAULT_NAME_ZH_INCLUDES)
+          : pickDefaultVoiceKey(listVoices, "en-US", DEFAULT_NAME_EN_INCLUDES);
+
+      if (kind === "zh") { voiceKeyZH = fallbackKey; safeSetLS(LS_VOICE_ZH, voiceKeyZH); selectedKey = voiceKeyZH; }
+      else { voiceKeyEN = fallbackKey; safeSetLS(LS_VOICE_EN, voiceKeyEN); selectedKey = voiceKeyEN; }
+    }
+
+    const selectedVoice = findVoiceByKey(selectedKey) || listVoices[0] || null;
+    if (btnTxt) btnTxt.textContent = selectedVoice ? voiceLabel(selectedVoice) : "No voices";
+
+    if (!trimmed.length) {
+      const it = document.createElement("div");
+      it.className = "tts-dd-item";
+      it.textContent = "No voices";
+      list.appendChild(it);
+      return;
+    }
+
+    trimmed.forEach(v => {
+      const k = voiceKey(v);
+      const it = document.createElement("div");
+      it.className = "tts-dd-item" + (k === selectedKey ? " active" : "");
+      it.textContent = voiceLabel(v);
+
+      it.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (kind === "zh") { voiceKeyZH = k; safeSetLS(LS_VOICE_ZH, voiceKeyZH); }
+        else { voiceKeyEN = k; safeSetLS(LS_VOICE_EN, voiceKeyEN); }
+
+        syncVoiceDropdowns();
+        closeAllDropdowns();
+      });
+
+      list.appendChild(it);
+    });
+  }
+
+  function hideVoicePanel(){
+    const panel = document.getElementById("tts-voice-panel-portal");
+    if (!panel) return;
+    panel.classList.remove("open");
+    panel.style.display = "none";
+    closeAllDropdowns();
+  }
+
+  function openOrToggleVoicePanel(anchorBtn){
+    const panel = ensureVoicePanelPortal();
+
+    if (panel.classList.contains("open")) {
+      hideVoicePanel();
+      return;
+    }
+
+    warmVoices();
+    ensureVoiceKeys();
+    syncVoiceDropdowns();
+    updateSettingsUI();
+    updateAutoUI();
+
+    panel.style.display = "block";
+    panel.classList.add("open");
+    closeAllDropdowns();
+
+    requestAnimationFrame(() => positionVoicePanel(anchorBtn, panel));
+  }
+
+  function positionVoicePanel(anchorBtn, panel){
+    if (!anchorBtn || !panel) return;
+
+    const margin = 8;
+    const gap = 8;
+    const r = anchorBtn.getBoundingClientRect();
+
+    const w = panel.offsetWidth || 360;
+    const h = panel.offsetHeight || 160;
+
+    let left = r.right - w;
+    let top  = r.bottom + gap;
+
+    if (left < margin) left = margin;
+    if (left + w > window.innerWidth - margin) left = window.innerWidth - margin - w;
+
+    if (top + h > window.innerHeight - margin) {
+      top = r.top - gap - h;
+    }
+    if (top < margin) top = margin;
+
+    panel.style.left = left + "px";
+    panel.style.top  = top + "px";
+  }
+
+  function ensureSelectionPop() {
+    let pop = document.getElementById("tts-selection-pop");
+    if (pop) return pop;
+
+    pop = document.createElement("div");
+    pop.id = "tts-selection-pop";
+
+    const btn = document.createElement("button");
+    btn.className = "tts-btn";
+    btn.type = "button";
+    btn.setAttribute("data-state", "play");
+    btn.setAttribute("aria-pressed", "false");
+    btn.setAttribute("aria-label", "Speak selection");
+
+    const zh = document.createElement("div");
+    zh.id = "tts-selection-zh";
+    zh.innerHTML = '<span class="muted">翻譯載入中…</span>';
+
+    btn.addEventListener("pointerdown", warmVoices, { passive: true });
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const text = getSelectionText();
+      if (!text) return;
+
+      stop({ cancelAuto: true });
+      speakAuto(text, btn, { auto: false });
+    });
+
+    pop.appendChild(btn);
+    pop.appendChild(zh);
+    document.body.appendChild(pop);
+    return pop;
+  }
+
+  function getSelectionPopEl() { return document.getElementById("tts-selection-pop"); }
+
+  function nodeInsidePop(node, pop) {
+    if (!node || !pop) return false;
+    const el = (node.nodeType === Node.TEXT_NODE) ? node.parentNode : node;
+    return !!(el && pop.contains(el));
+  }
+
+  function selectionTouchesPop() {
+    const pop = getSelectionPopEl();
+    const sel = window.getSelection ? window.getSelection() : null;
+    if (!pop || !sel || sel.rangeCount === 0) return false;
+    return nodeInsidePop(sel.anchorNode, pop) || nodeInsidePop(sel.focusNode, pop);
+  }
+
+  function hideSelectionPop() {
+    const pop = getSelectionPopEl();
+    if (pop) pop.style.display = "none";
+  }
+
+  function getSelectionText() {
+    const sel = window.getSelection ? window.getSelection() : null;
+    if (!sel || sel.rangeCount === 0) return "";
+    const text = (sel.toString() || "").trim();
+    if (!text || text.length > SELECTION_MAX_CHARS) return "";
+    return text;
+  }
+
+  function getSelectionRect() {
+    const sel = window.getSelection ? window.getSelection() : null;
+    if (!sel || sel.rangeCount === 0) return null;
+    const range = sel.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    if (!rect || (rect.width === 0 && rect.height === 0)) return null;
+    return rect;
+  }
+
+  async function translateToZh(text) {
+    const key = `${TRANSLATE_FROM}|${TRANSLATE_TO}|${text}`;
+    if (translateCache.has(key)) return translateCache.get(key);
+
+    const url =
+      "https://translate.googleapis.com/translate_a/single" +
+      `?client=gtx&sl=${encodeURIComponent(TRANSLATE_FROM)}` +
+      `&tl=${encodeURIComponent(TRANSLATE_TO)}` +
+      `&dt=t&q=${encodeURIComponent(text)}`;
+
+    try {
+      const res = await fetch(url, { method: "GET" });
+      if (!res.ok) throw new Error("http " + res.status);
+      const data = await res.json();
+      const translated = Array.isArray(data?.[0]) ? data[0].map(x => x?.[0] || "").join("") : "";
+      translateCache.set(key, translated);
+      return translated;
+    } catch (_) {
+      translateCache.set(key, "");
+      return "";
+    }
+  }
+
+  async function showSelectionPop() {
+    if (!supported()) return;
+    if (selectionTouchesPop()) return;
+
+    const text = getSelectionText();
+    if (!text) return;
+
+    const rect = getSelectionRect();
+    if (!rect) return;
+
+    const pop = ensureSelectionPop();
+    const zh = document.getElementById("tts-selection-zh");
+
+    pop.style.display = "flex";
+
+    const offset = 8;
+    const popW = pop.offsetWidth || 240;
+    const popH = pop.offsetHeight || 56;
+
+    let left = rect.left + rect.width / 2 - popW / 2;
+    let top  = rect.top - popH - offset;
+
+    left = Math.max(8, Math.min(left, window.innerWidth - popW - 8));
+    if (top < 8) top = rect.bottom + offset;
+
+    pop.style.left = `${left}px`;
+    pop.style.top  = `${top}px`;
+
+    if (zh) {
+      zh.innerHTML = '<span class="muted">翻譯載入中…</span>';
+      const translated = await translateToZh(text);
+      zh.textContent = translated ? translated : "（翻譯失敗或被阻擋）";
+    }
+  }
+
+  function bindGlobalEventsOnce(){
+    if (globalEventsBound) return;
+    globalEventsBound = true;
+
+    document.addEventListener("mouseup", (e) => {
+      const pop = getSelectionPopEl();
+      if (pop && e.target && pop.contains(e.target)) return;
+      setTimeout(showSelectionPop, 0);
+    });
+
+    document.addEventListener("keyup", () => {
+      const pop = getSelectionPopEl();
+      if (pop && document.activeElement && pop.contains(document.activeElement)) return;
+      setTimeout(showSelectionPop, 0);
+    });
+
+    document.addEventListener("mousedown", (e) => {
+      const t = e.target;
+
+      const panel = document.getElementById("tts-voice-panel-portal");
+      const toggle = document.getElementById("tts-header-voice-toggle");
+      if (panel && panel.classList.contains("open")) {
+        const insidePanel = panel.contains(t);
+        const insideToggle = toggle && toggle.contains(t);
+        if (!insidePanel && !insideToggle) hideVoicePanel();
+        if (insidePanel && !t.closest(".tts-dd")) closeAllDropdowns();
+      }
+
+      const pop = getSelectionPopEl();
+      if (pop && t && !pop.contains(t)) hideSelectionPop();
+    }, { passive: true });
+
+    window.addEventListener("resize", () => {
+      hideSelectionPop();
+      const panel = document.getElementById("tts-voice-panel-portal");
+      const toggle = document.getElementById("tts-header-voice-toggle");
+      if (panel && panel.classList.contains("open") && toggle) {
+        positionVoicePanel(toggle, panel);
+      }
+    });
+
+    window.addEventListener("scroll", hideSelectionPop, true);
+
+    if ("speechSynthesis" in window) {
+      speechSynthesis.onvoiceschanged = () => {
+        ensureVoiceKeys();
+        syncVoiceDropdowns();
+      };
+    }
+
+    if (window.document$ && typeof window.document$.subscribe === "function") {
+      window.document$.subscribe(() => scheduleEnhance(true));
+    }
+    document.addEventListener("navigation:complete", () => scheduleEnhance(true));
+  }
+
+  function getContentRoot(){
+    return document.querySelector(".md-content .md-content__inner")
+        || document.querySelector(".md-content")
+        || document.querySelector("main")
+        || document.body;
+  }
+
+  function enhanceOnce(){
+    if (!supported()) return;
+
+    const root = getContentRoot();
+    attachSentenceButtons(root);
+
+    ensureHeaderControl();
+    ensureVoicePanelPortal();
+    syncVoiceDropdowns();
+    updateSettingsUI();
+    updateAutoUI();
+
+    ensureSelectionPop();
+    resumeAutoIfRequested();
+  }
+
+  function enhanceWithRetry(tries){
+    enhanceOnce();
+
+    const ellipsis = getHeaderEllipsis();
+    const hasHeaderBtn = !!document.getElementById("tts-header-control");
+    const ready = !!ellipsis && hasHeaderBtn;
+
+    if (!ready && tries < 14) {
+      setTimeout(() => enhanceWithRetry(tries + 1), 120);
+    }
+  }
+
+  function scheduleEnhance(force){
+    if (scheduled && !force) return;
+    scheduled = true;
+
+    requestAnimationFrame(() => {
+      scheduled = false;
+      warmVoices();
+      ensureVoiceKeys();
+
+      // normalize persisted values
+      ttsRate = clamp(ttsRate, RATE_MIN, RATE_MAX);
+      autoGapMs = Math.round(clamp(autoGapMs, GAP_MIN, GAP_MAX));
+      safeSetLS(LS_RATE, String(ttsRate));
+      safeSetLS(LS_GAP, String(autoGapMs));
+      safeSetLS(LS_AUTO_SCROLL, autoScrollEnabled ? "1" : "0");
+
+      enhanceWithRetry(0);
+      startObserver();
+    });
+  }
+
+  function startObserver(){
+    const target = getContentRoot();
+    if (!target) return;
+
+    if (observer && observerTarget === target) return;
+
+    if (observer) {
+      try { observer.disconnect(); } catch (_) {}
+      observer = null;
+      observerTarget = null;
+    }
+
+    observerTarget = target;
+    observer = new MutationObserver(() => scheduleEnhance(false));
+    observer.observe(target, { childList: true, subtree: true });
+  }
+
+  function init(){
+    if (!supported()) return;
+    bindGlobalEventsOnce();
+    warmVoices();
+    ensureVoiceKeys();
+    scheduleEnhance(true);
+    startObserver();
+  }
+
+  window.__TTS_TOOLKIT__ = {
+    scheduleEnhance: () => scheduleEnhance(true)
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>  
+
+
+
+<!-- <script>
+    var ALGOLIA_CONFIG = {
+      logo: '\/images\/algolia_logo.svg',
+      algolia: {
+        applicationID: "WS267X19C5",
+        apiKey: "1d3e38f83811634b945a922d39d9b719",
+        indexName: "algolia",
+        hits: {
+          "per_page": parseInt("10")
+        },
+        labels: {
+          "input_placeholder": "搜索.....",
+          "hits_empty": "未發現與 「${query}」相關内容",
+          "hits_stats": "找到${hits}條结果（用时 ${time} ms）"
+        }
+      }
+    };
+  </script>
+  
+
+   -->
+<!-- 
+
+ -->
+
+
+
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/pymdownx-extras/extra-8611f6c398.css">
+    
+      <link rel="stylesheet" href="../assets/pymdownx-extras/自定義.css?v=20260322-2">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#week-3" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+            
+            <!-- <a href="https://github.com/pei-yan-2147">Sponsorship</a>
+
+is now available!
+<span class="twemoji heart-throb">
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7.655 14.916zh-.002l-.006-.003-.018-.01a22 22 0 0 1-3.744-2.584C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.044 5.231-3.886 6.818a22 22 0 0 1-3.433 2.414 7 7 0 0 1-.31.17l-.018.01-.008.004a.75.75 0 0 1-.69 0"/></svg>
+</span> -->
+
+<!-- ---------------------------------------------------------------------------------- -->
+<!-- 
+近期更新<a href="機器學習%28Machine%20Learning%29.html">人工智慧</a> -->
+
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cascadia Mono', monospace;
+        }
+
+        .key {
+            display: inline-block;
+            background: #444;
+            color: #fff;
+            border: 1px solid #666;
+            border-radius: 4px;
+            padding: 2px 6px;
+            margin: 0 2px;
+            font-size: 0.9em;
+            box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    © 2026 國立臺灣師範大學資訊工程學系陳彥翰 版權所有
+</body>
+
+</html>
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+
+<header class="md-header" data-md-component="header">
+  <nav
+    class="md-header__inner md-grid"
+    aria-label="header.title"
+  >
+    <a
+      href="https://peicd100.github.io/university-notes/"
+      title="SoCV Learning Notes"
+      class="md-header__button md-logo"
+      aria-label="SoCV Learning Notes"
+    >
+      
+  <img src="../logo/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SoCV Learning Notes
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Week 3
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="md-header__options">
+      <div class="md-header-nav__scheme md-header-nav__button md-source__icon md-icon">
+          <a
+            href="javascript:toggleScheme();"
+            title="Light mode"
+            class="light-mode"
+          >
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+          </a>
+          <a
+            href="javascript:toggleScheme();"
+            title="Dark mode"
+            class="dark-mode"
+          >
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+          </a>
+          <a
+            href="javascript:toggleScheme();"
+            title="System preference"
+            class="system-mode"
+          >
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.5 2c-1.79 1.15-3 3.18-3 5.5s1.21 4.35 3.03 5.5C4.46 13 2 10.54 2 7.5A5.5 5.5 0 0 1 7.5 2m11.57 1.5 1.43 1.43L4.93 20.5 3.5 19.07zm-6.18 2.43L11.41 5 9.97 6l.42-1.7L9 3.24l1.75-.12.58-1.65L12 3.1l1.73.03-1.35 1.13zm-3.3 3.61-1.16-.73-1.12.78.34-1.32-1.09-.83 1.36-.09.45-1.29.51 1.27 1.36.03-1.05.87zM19 13.5a5.5 5.5 0 0 1-5.5 5.5c-1.22 0-2.35-.4-3.26-1.07l7.69-7.69c.67.91 1.07 2.04 1.07 3.26m-4.4 6.58 2.77-1.15-.24 3.35zm4.33-2.7 1.15-2.77 2.2 2.54zm1.15-4.96-1.14-2.78 3.34.24zM9.63 18.93l2.77 1.15-2.53 2.19z"/></svg>
+          </a>
+           <a
+            href="javascript:toggleScheme();"
+            title="Unknown scheme"
+            class="unknown-mode"
+          >
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m15.07 11.25-.9.92C13.45 12.89 13 13.5 13 15h-2v-.5c0-1.11.45-2.11 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41a2 2 0 0 0-2-2 2 2 0 0 0-2 2H8a4 4 0 0 1 4-4 4 4 0 0 1 4 4 3.2 3.2 0 0 1-.93 2.25M13 19h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10c0-5.53-4.5-10-10-10"/></svg>
+          </a>
+      </div>
+    </div>
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../index.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  SoCV Learning Notes
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="SoCV Learning Notes" class="md-nav__button md-logo" aria-label="SoCV Learning Notes" data-md-component="logo">
+      
+  <img src="../logo/logo.png" alt="logo">
+
+    </a>
+    SoCV Learning Notes
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SoCV Learning Notes
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    SoCV Learning Notes
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="%E8%AA%B2%E7%A8%8B%E8%B3%87%E8%A8%8A.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    課程資訊
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Week%201.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Week 1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Week%202.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Week 2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Week 3
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="Week%203.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Week 3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ln-writing-assertions-to-your-rtl-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [LN] Writing assertions to your RTL design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[LN] Writing assertions to your RTL design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#was-it-easy-to-write-assertions-for-this-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Was it easy to write assertions for this design?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#did-the-assertions-help-reveal-any-bugs-if-so-what-kind-of-bugs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Did the assertions help reveal any bugs? If so, what kind of bugs?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#if-you-found-bugs-revise-your-rtl-design-and-repeat-the-verification-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If you found bugs, revise your RTL design and repeat the verification process.
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ln-bdds-for-different-boolean-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [LN] BDDs for different Boolean functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[LN] BDDs for different Boolean functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#try-to-build-bdds-from-different-types-of-functions-and-see-how-they-look-like" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Try to build BDDs from different types of functions and see how they look like
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#discuss-the-growth-of-the-number-of-bdd-nodes-wst-input-sizes-whats-the-complexity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discuss the growth of the number of BDD nodes w.s.t. input sizes. What's the complexity?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ln-the-worst-case-size-of-bdds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [LN] The worst-case size of BDDs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[LN] The worst-case size of BDDs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-reading-the-referenced-paper-below-how-do-you-computeestimate-the-worst-case-size-of-bdds-for-any-arbitrary-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before reading the referenced paper below, how do you compute/estimate the worst-case size of BDDs for any arbitrary functions?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summarize-the-paper-what-is-the-worst-case-bdd-size-and-how-to-derive-it-please-highlight-some-interesting-points-from-the-paper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summarize the paper: what is the worst-case BDD size and how to derive it. Please highlight some interesting points from the paper
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-some-experiments-to-verify-the-statements-of-this-paper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design some experiments to verify the statements of this paper
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Week%204.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Week 4
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ln-writing-assertions-to-your-rtl-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [LN] Writing assertions to your RTL design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[LN] Writing assertions to your RTL design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#was-it-easy-to-write-assertions-for-this-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Was it easy to write assertions for this design?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#did-the-assertions-help-reveal-any-bugs-if-so-what-kind-of-bugs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Did the assertions help reveal any bugs? If so, what kind of bugs?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#if-you-found-bugs-revise-your-rtl-design-and-repeat-the-verification-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If you found bugs, revise your RTL design and repeat the verification process.
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ln-bdds-for-different-boolean-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [LN] BDDs for different Boolean functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[LN] BDDs for different Boolean functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#try-to-build-bdds-from-different-types-of-functions-and-see-how-they-look-like" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Try to build BDDs from different types of functions and see how they look like
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#discuss-the-growth-of-the-number-of-bdd-nodes-wst-input-sizes-whats-the-complexity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discuss the growth of the number of BDD nodes w.s.t. input sizes. What's the complexity?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ln-the-worst-case-size-of-bdds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [LN] The worst-case size of BDDs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[LN] The worst-case size of BDDs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-reading-the-referenced-paper-below-how-do-you-computeestimate-the-worst-case-size-of-bdds-for-any-arbitrary-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before reading the referenced paper below, how do you compute/estimate the worst-case size of BDDs for any arbitrary functions?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summarize-the-paper-what-is-the-worst-case-bdd-size-and-how-to-derive-it-please-highlight-some-interesting-points-from-the-paper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summarize the paper: what is the worst-case BDD size and how to derive it. Please highlight some interesting points from the paper
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-some-experiments-to-verify-the-statements-of-this-paper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design some experiments to verify the statements of this paper
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+  
+                  
+
+
+
+<h1 id="week-3">Week 3<a class="headerlink" href="#week-3" title="Permanent link"></a></h1>
+<h2 id="ln-writing-assertions-to-your-rtl-design">[LN] Writing assertions to your RTL design<a class="headerlink" href="#ln-writing-assertions-to-your-rtl-design" title="Permanent link"></a></h2>
+<h3 id="was-it-easy-to-write-assertions-for-this-design">Was it easy to write assertions for this design?<a class="headerlink" href="#was-it-easy-to-write-assertions-for-this-design" title="Permanent link"></a></h3>
+<p>我覺得對這個販賣機 RTL 來說，撰寫簡單的 safety assertions 是相對容易的。我寫了以下幾條：</p>
+<ul>
+<li><strong>狀態合法性</strong>：state 永遠只能是 <code>SERVICE_ON</code>、<code>SERVICE_BUSY</code>、<code>SERVICE_OFF</code> 三者之一（不會出現 <code>2'b11</code>）。</li>
+<li><strong>庫存上限</strong>：每種硬幣庫存不會超過 7（因為 3-bit 飽和加法的設計）。</li>
+<li><strong>空閒輸出清零</strong>：在 <code>SERVICE_ON</code> 期間，所有 coinOut 與 itemTypeOut 應為 0。</li>
+<li><strong>不出貨時不扣庫存</strong>：若金額不足而全額退幣，庫存不應被改動。</li>
+</ul>
+<p>這些屬於 invariant / safety property（AG p），只需在每個 clock edge 檢查一個布林條件是否成立，語法上只是一個 <code>always @(posedge clk)</code> 配 <code>if (!cond) $error(...)</code> 就能完成。</p>
+<p>比較困難的是跨時脈的 protocol assertions。例如我想確認「從 SERVICE_ON 接受 request 到 SERVICE_OFF 輸出結果的過程中，找零金額 + 商品價格 = 投入金額」，因為投入金額在 ON → BUSY 的瞬間被 latch 進內部暫存器，必須在不同狀態下追蹤同一組數值才能驗證守恆關係。這類 assertions 需要對設計的時序行為有深入理解。</p>
+<p>在 GV 工具中，assertions 的做法是將要驗證的條件 promote 成一個 primary output（例如 <code>output p</code>），當 <code>p = 1</code> 時代表違反了 property。之後可以用 PDR、BMC、BDD-based model checking 等形式驗證引擎對該 output 做窮舉檢查。這種做法的好處是不需要撰寫 testbench 的輸入激勵，形式驗證引擎會自動搜索所有可能的輸入組合。</p>
+<p>我覺得 assertion 最大的價值不只是「找 bug」，而是它迫使我把「什麼是正確行為」這件事用精確的邏輯寫下來。寫 assertion 的過程其實就是在重新審視 spec——哪些不變量應該永遠成立？哪些狀態轉移是合法的？這個思考過程本身就能揪出很多「我以為我懂但其實沒想清楚」的地方。</p>
+<h3 id="did-the-assertions-help-reveal-any-bugs-if-so-what-kind-of-bugs">Did the assertions help reveal any bugs? If so, what kind of bugs?<a class="headerlink" href="#did-the-assertions-help-reveal-any-bugs-if-so-what-kind-of-bugs" title="Permanent link"></a></h3>
+<p>在我 Week 2 自己寫的販賣機設計上，所有 assertions 均通過，因為那個設計在 testbench 階段就已經充分驗證過了。</p>
+<p>不過我拿 GV 附的範例設計 <code>vending-simple.v</code> 來試，assertions 確實揭露了一個隱藏的 bug。那個設計在模組內部定義了一個 property output：</p>
+<div class="highlight"><pre><span></span><code><span class="k">assign</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">initialized</span>
+<span class="w">        </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">serviceTypeOut</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="no">`SERVICE_OFF</span><span class="p">)</span>
+<span class="w">        </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">itemTypeOut</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="no">`ITEM_NONE</span><span class="p">)</span>
+<span class="w">        </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">outExchange</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">inputValue</span><span class="p">);</span>
+</code></pre></div>
+<p>這個 assertion 的語意是：當機器進入 <code>SERVICE_OFF</code> 且沒有出貨（交易被拒絕）時，退還的零錢總額必須等於使用者投入的金額。若不相等，就代表有 bug。</p>
+<p>使用 GV 的 PDR（Property Directed Reachability）引擎進行形式驗證：</p>
+<div class="highlight"><pre><span></span><code>Output  0 was asserted in frame  9
+</code></pre></div>
+<p>PDR 在第 9 個時脈框架就找到了一組反例。</p>
+<p>根源分析：bug 位於 <code>vending-simple.v</code> 的找零邏輯中的 <code>NTD_1</code> 分支。當機器正在用 $1 硬幣找零、但庫存中的 $1 硬幣已用盡（<code>countNTD_1 == 3'd0</code>）時，設計錯誤地直接跳到 <code>SERVICE_OFF</code> 並將所有 coinOut 歸零、itemTypeOut 設為 <code>ITEM_NONE</code>。這導致使用者投入的錢既沒有買到商品、也沒有被正確退還——零錢輸出為 0，但投入金額 inputValue 非零，assertion 因此觸發。</p>
+<p>這類 bug 在 directed simulation 中很難被發現，因為它只在特定的庫存狀態與投幣組合下才會觸發。形式驗證的窮舉搜索則可以系統性地找到。</p>
+<p>這個結果讓我很震撼——PDR 只花了 8.5 秒就找到了一個我用 directed test 可能永遠都不會去測的 corner case。而且它不需要我去想「應該測什麼輸入」，它自己會搜索整個輸入空間。這讓我深刻理解了 Week 1 講的「為什麼不能只靠 simulation」——不管寫多少 test case，都有遺漏的可能，但形式驗證是數學上的窮舉。</p>
+<h3 id="if-you-found-bugs-revise-your-rtl-design-and-repeat-the-verification-process">If you found bugs, revise your RTL design and repeat the verification process.<a class="headerlink" href="#if-you-found-bugs-revise-your-rtl-design-and-repeat-the-verification-process" title="Permanent link"></a></h3>
+<p>上述 <code>vending-simple.v</code> 的 bug 位於以下片段（第 222–235 行附近）：</p>
+<div class="highlight"><pre><span></span><code><span class="no">`NTD_1</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">serviceValue</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="no">`VALUE_NTD_1</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">countNTD_1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mh">3</span><span class="mi">&#39;d0</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">            </span><span class="c1">// BUG: 直接跳 SERVICE_OFF 並清空輸出，導致退幣金額為 0</span>
+<span class="w">            </span><span class="n">serviceTypeOut_w</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="no">`SERVICE_OFF</span><span class="p">;</span><span class="w">  </span><span class="c1">// bug 1</span>
+<span class="w">            </span><span class="n">coinOutNTD_50_w</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mh">3</span><span class="mi">&#39;d0</span><span class="p">;</span>
+<span class="w">            </span><span class="p">...</span>
+</code></pre></div>
+<p>我想到的修正方向：當最小面額硬幣用盡且仍需找零時，應該放棄本次交易並全額退幣。具體做法是把 <code>serviceValue_w</code> 設回 <code>inputValue</code>、<code>itemTypeOut_w</code> 設為 <code>ITEM_NONE</code>，然後重新從大面額開始退幣。</p>
+<p>在我自己的 Week 2 設計中，因為我採用了不同的找零策略（一次性在 <code>SERVICE_BUSY</code> 的組合邏輯中完成所有找零計算，任何面額不足就直接全額退幣），所以不存在這個 bug。assertions 全部通過，確認了設計的正確性。</p>
+<p>回頭看這個經驗，我發現設計架構的選擇（一次算完 vs. 多 cycle 逐幣）對可驗證性有直接影響。我的「一次算完」策略雖然組合邏輯比較大，但狀態空間小、行為容易預測；<code>vending-simple.v</code> 的多 cycle 策略則引入了中間狀態，增加了 bug 藏身的角落。這讓我學到：在設計 RTL 的時候就應該考慮「這個架構容不容易驗證」，而不是寫完再來補 assertion。</p>
+<p>以下是我為 Week 2 設計寫的 assertion checker 模組，以及用 GV 對 <code>vending-simple.v</code> 跑形式驗證的完整流程。</p>
+<div class="collapse-code"><input checked="checked" id="__collapse0" name="__collapse0" type="checkbox" /><div class="highlight"><span class="filename">vending_machine_checker.v（Week 2 設計的 assertion 模組）</span><pre><span></span><code><span class="no">`timescale</span><span class="w"> </span><span class="mh">1</span><span class="n">ns</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mh">1</span><span class="n">ps</span>
+
+<span class="k">module</span><span class="w"> </span><span class="n">vending_machine_checker</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="k">input</span><span class="w">              </span><span class="n">clk</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">              </span><span class="n">reset</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">coinInNTD_50</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">coinInNTD_10</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">coinInNTD_5</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">coinInNTD_1</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">itemTypeIn</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">2</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">coinOutNTD_50</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">2</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">coinOutNTD_10</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">2</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">coinOutNTD_5</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">2</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">coinOutNTD_1</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">itemTypeOut</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">serviceTypeOut</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">2</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">inv50</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">2</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">inv10</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">2</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">inv5</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">2</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">inv1</span><span class="p">,</span>
+<span class="w">    </span><span class="k">input</span><span class="w">      </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">   </span><span class="n">state</span>
+<span class="p">);</span>
+
+<span class="w">    </span><span class="k">localparam</span><span class="w"> </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w"> </span><span class="n">ITEM_NONE</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="mh">2</span><span class="mb">&#39;b00</span><span class="p">;</span>
+<span class="w">    </span><span class="k">localparam</span><span class="w"> </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w"> </span><span class="n">SERVICE_ON</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mh">2</span><span class="mb">&#39;b00</span><span class="p">;</span>
+<span class="w">    </span><span class="k">localparam</span><span class="w"> </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w"> </span><span class="n">SERVICE_BUSY</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">2</span><span class="mb">&#39;b01</span><span class="p">;</span>
+<span class="w">    </span><span class="k">localparam</span><span class="w"> </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w"> </span><span class="n">SERVICE_OFF</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mh">2</span><span class="mb">&#39;b10</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">integer</span><span class="w"> </span><span class="n">assert_pass</span><span class="p">,</span><span class="w"> </span><span class="n">assert_fail</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">initial</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">        </span><span class="n">assert_pass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0</span><span class="p">;</span>
+<span class="w">        </span><span class="n">assert_fail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0</span><span class="p">;</span>
+<span class="w">    </span><span class="k">end</span>
+
+<span class="w">    </span><span class="c1">// A1: 狀態合法性 — state 永遠不為 2&#39;b11</span>
+<span class="w">    </span><span class="k">always</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">reset</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">state</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mh">2</span><span class="mb">&#39;b11</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">                </span><span class="n">assert_fail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">assert_fail</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mh">1</span><span class="p">;</span>
+<span class="w">                </span><span class="nb">$display</span><span class="p">(</span><span class="s">&quot;[ASSERT FAIL] A1: illegal state 2&#39;b11 at time %0t&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">$time</span><span class="p">);</span>
+<span class="w">            </span><span class="k">end</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">                </span><span class="n">assert_pass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">assert_pass</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mh">1</span><span class="p">;</span>
+<span class="w">            </span><span class="k">end</span>
+<span class="w">        </span><span class="k">end</span>
+<span class="w">    </span><span class="k">end</span>
+
+<span class="w">    </span><span class="c1">// A2: 庫存上限 — 每種硬幣不超過 7</span>
+<span class="w">    </span><span class="k">always</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">reset</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">inv50</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mh">3</span><span class="mi">&#39;d7</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">inv10</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mh">3</span><span class="mi">&#39;d7</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">inv5</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mh">3</span><span class="mi">&#39;d7</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">inv1</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mh">3</span><span class="mi">&#39;d7</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">                </span><span class="n">assert_fail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">assert_fail</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mh">1</span><span class="p">;</span>
+<span class="w">                </span><span class="nb">$display</span><span class="p">(</span><span class="s">&quot;[ASSERT FAIL] A2: inventory overflow at time %0t&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">$time</span><span class="p">);</span>
+<span class="w">            </span><span class="k">end</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">                </span><span class="n">assert_pass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">assert_pass</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mh">1</span><span class="p">;</span>
+<span class="w">            </span><span class="k">end</span>
+<span class="w">        </span><span class="k">end</span>
+<span class="w">    </span><span class="k">end</span>
+
+<span class="w">    </span><span class="c1">// A3: SERVICE_ON 期間輸出應為 0</span>
+<span class="w">    </span><span class="k">always</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">reset</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">serviceTypeOut</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SERVICE_ON</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">coinOutNTD_50</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mh">0</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">coinOutNTD_10</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mh">0</span><span class="w"> </span><span class="o">||</span>
+<span class="w">                </span><span class="n">coinOutNTD_5</span><span class="w">  </span><span class="o">!=</span><span class="w"> </span><span class="mh">0</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">coinOutNTD_1</span><span class="w">  </span><span class="o">!=</span><span class="w"> </span><span class="mh">0</span><span class="w"> </span><span class="o">||</span>
+<span class="w">                </span><span class="n">itemTypeOut</span><span class="w">   </span><span class="o">!=</span><span class="w"> </span><span class="n">ITEM_NONE</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">                </span><span class="n">assert_fail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">assert_fail</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mh">1</span><span class="p">;</span>
+<span class="w">                </span><span class="nb">$display</span><span class="p">(</span><span class="s">&quot;[ASSERT FAIL] A3: non-zero output in SERVICE_ON at time %0t&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">$time</span><span class="p">);</span>
+<span class="w">            </span><span class="k">end</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">                </span><span class="n">assert_pass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">assert_pass</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mh">1</span><span class="p">;</span>
+<span class="w">            </span><span class="k">end</span>
+<span class="w">        </span><span class="k">end</span>
+<span class="w">    </span><span class="k">end</span>
+
+<span class="w">    </span><span class="c1">// A4: 狀態轉移合法性 — SERVICE_ON 不會直接跳到 SERVICE_OFF</span>
+<span class="w">    </span><span class="kt">reg</span><span class="w"> </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w"> </span><span class="n">prev_state</span><span class="p">;</span>
+<span class="w">    </span><span class="k">always</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="w"> </span><span class="k">or</span><span class="w"> </span><span class="k">posedge</span><span class="w"> </span><span class="n">reset</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">reset</span><span class="p">)</span>
+<span class="w">            </span><span class="n">prev_state</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">SERVICE_ON</span><span class="p">;</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">            </span><span class="n">prev_state</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">state</span><span class="p">;</span>
+<span class="w">    </span><span class="k">end</span>
+
+<span class="w">    </span><span class="k">always</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">reset</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">prev_state</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SERVICE_ON</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SERVICE_OFF</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">                </span><span class="n">assert_fail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">assert_fail</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mh">1</span><span class="p">;</span>
+<span class="w">                </span><span class="nb">$display</span><span class="p">(</span><span class="s">&quot;[ASSERT FAIL] A4: illegal ON-&gt;OFF transition at time %0t&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">$time</span><span class="p">);</span>
+<span class="w">            </span><span class="k">end</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">                </span><span class="n">assert_pass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">assert_pass</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mh">1</span><span class="p">;</span>
+<span class="w">            </span><span class="k">end</span>
+<span class="w">        </span><span class="k">end</span>
+<span class="w">    </span><span class="k">end</span>
+
+<span class="k">endmodule</span>
+</code></pre></div>
+<div class="code-footer"><label class="expand" for="__collapse0" tabindex="0" title="expand"></label><label class="collapse" for="__collapse0" tabindex="0" title="collapse"></label></div>
+</div>
+<div class="collapse-code"><input checked="checked" id="__collapse1" name="__collapse1" type="checkbox" /><div class="highlight"><span class="filename">tb_vending_with_assertions.v（帶 assertions 的 testbench 片段）</span><pre><span></span><code><span class="no">`timescale</span><span class="w"> </span><span class="mh">1</span><span class="n">ns</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mh">1</span><span class="n">ps</span>
+
+<span class="k">module</span><span class="w"> </span><span class="n">tb_vending_with_assertions</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">reg</span><span class="w">         </span><span class="n">clk</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">reg</span><span class="w">         </span><span class="n">reset</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">reg</span><span class="w">  </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">  </span><span class="n">coinInNTD_50</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">reg</span><span class="w">  </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">  </span><span class="n">coinInNTD_10</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">reg</span><span class="w">  </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">  </span><span class="n">coinInNTD_5</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">reg</span><span class="w">  </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">  </span><span class="n">coinInNTD_1</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">reg</span><span class="w">  </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">  </span><span class="n">itemTypeIn</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">wire</span><span class="w"> </span><span class="p">[</span><span class="mh">2</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">  </span><span class="n">coinOutNTD_50</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">wire</span><span class="w"> </span><span class="p">[</span><span class="mh">2</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">  </span><span class="n">coinOutNTD_10</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">wire</span><span class="w"> </span><span class="p">[</span><span class="mh">2</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">  </span><span class="n">coinOutNTD_5</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">wire</span><span class="w"> </span><span class="p">[</span><span class="mh">2</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">  </span><span class="n">coinOutNTD_1</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">wire</span><span class="w"> </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">  </span><span class="n">itemTypeOut</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">wire</span><span class="w"> </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w">  </span><span class="n">serviceTypeOut</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">localparam</span><span class="w"> </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w"> </span><span class="n">ITEM_NONE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">2</span><span class="mb">&#39;b00</span><span class="p">;</span>
+<span class="w">    </span><span class="k">localparam</span><span class="w"> </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w"> </span><span class="n">ITEM_A</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="mh">2</span><span class="mb">&#39;b01</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">vending_machine</span><span class="w"> </span><span class="n">dut</span><span class="w"> </span><span class="p">(</span>
+<span class="w">        </span><span class="p">.</span><span class="n">clk</span><span class="p">(</span><span class="n">clk</span><span class="p">),</span><span class="w"> </span><span class="p">.</span><span class="n">reset</span><span class="p">(</span><span class="n">reset</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">coinInNTD_50</span><span class="p">(</span><span class="n">coinInNTD_50</span><span class="p">),</span><span class="w"> </span><span class="p">.</span><span class="n">coinInNTD_10</span><span class="p">(</span><span class="n">coinInNTD_10</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">coinInNTD_5</span><span class="p">(</span><span class="n">coinInNTD_5</span><span class="p">),</span><span class="w">   </span><span class="p">.</span><span class="n">coinInNTD_1</span><span class="p">(</span><span class="n">coinInNTD_1</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">itemTypeIn</span><span class="p">(</span><span class="n">itemTypeIn</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">coinOutNTD_50</span><span class="p">(</span><span class="n">coinOutNTD_50</span><span class="p">),</span><span class="w"> </span><span class="p">.</span><span class="n">coinOutNTD_10</span><span class="p">(</span><span class="n">coinOutNTD_10</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">coinOutNTD_5</span><span class="p">(</span><span class="n">coinOutNTD_5</span><span class="p">),</span><span class="w">   </span><span class="p">.</span><span class="n">coinOutNTD_1</span><span class="p">(</span><span class="n">coinOutNTD_1</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">itemTypeOut</span><span class="p">(</span><span class="n">itemTypeOut</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">serviceTypeOut</span><span class="p">(</span><span class="n">serviceTypeOut</span><span class="p">)</span>
+<span class="w">    </span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">vending_machine_checker</span><span class="w"> </span><span class="n">checker</span><span class="w"> </span><span class="p">(</span>
+<span class="w">        </span><span class="p">.</span><span class="n">clk</span><span class="p">(</span><span class="n">clk</span><span class="p">),</span><span class="w"> </span><span class="p">.</span><span class="n">reset</span><span class="p">(</span><span class="n">reset</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">coinInNTD_50</span><span class="p">(</span><span class="n">coinInNTD_50</span><span class="p">),</span><span class="w"> </span><span class="p">.</span><span class="n">coinInNTD_10</span><span class="p">(</span><span class="n">coinInNTD_10</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">coinInNTD_5</span><span class="p">(</span><span class="n">coinInNTD_5</span><span class="p">),</span><span class="w">   </span><span class="p">.</span><span class="n">coinInNTD_1</span><span class="p">(</span><span class="n">coinInNTD_1</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">itemTypeIn</span><span class="p">(</span><span class="n">itemTypeIn</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">coinOutNTD_50</span><span class="p">(</span><span class="n">coinOutNTD_50</span><span class="p">),</span><span class="w"> </span><span class="p">.</span><span class="n">coinOutNTD_10</span><span class="p">(</span><span class="n">coinOutNTD_10</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">coinOutNTD_5</span><span class="p">(</span><span class="n">coinOutNTD_5</span><span class="p">),</span><span class="w">   </span><span class="p">.</span><span class="n">coinOutNTD_1</span><span class="p">(</span><span class="n">coinOutNTD_1</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">itemTypeOut</span><span class="p">(</span><span class="n">itemTypeOut</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">serviceTypeOut</span><span class="p">(</span><span class="n">serviceTypeOut</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">inv50</span><span class="p">(</span><span class="n">dut</span><span class="p">.</span><span class="n">inv50</span><span class="p">),</span><span class="w"> </span><span class="p">.</span><span class="n">inv10</span><span class="p">(</span><span class="n">dut</span><span class="p">.</span><span class="n">inv10</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">inv5</span><span class="p">(</span><span class="n">dut</span><span class="p">.</span><span class="n">inv5</span><span class="p">),</span><span class="w">   </span><span class="p">.</span><span class="n">inv1</span><span class="p">(</span><span class="n">dut</span><span class="p">.</span><span class="n">inv1</span><span class="p">),</span>
+<span class="w">        </span><span class="p">.</span><span class="n">state</span><span class="p">(</span><span class="n">dut</span><span class="p">.</span><span class="n">state</span><span class="p">)</span>
+<span class="w">    </span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">initial</span><span class="w"> </span><span class="n">clk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0</span><span class="p">;</span>
+<span class="w">    </span><span class="k">always</span><span class="w"> </span><span class="p">#</span><span class="mh">5</span><span class="w"> </span><span class="n">clk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">~</span><span class="n">clk</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">task</span><span class="w"> </span><span class="n">clear_inputs</span><span class="p">;</span>
+<span class="w">        </span><span class="k">begin</span>
+<span class="w">            </span><span class="n">coinInNTD_50</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">;</span><span class="w"> </span><span class="n">coinInNTD_10</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">;</span>
+<span class="w">            </span><span class="n">coinInNTD_5</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">;</span><span class="w"> </span><span class="n">coinInNTD_1</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">;</span>
+<span class="w">            </span><span class="n">itemTypeIn</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">ITEM_NONE</span><span class="p">;</span>
+<span class="w">        </span><span class="k">end</span>
+<span class="w">    </span><span class="k">endtask</span>
+
+<span class="w">    </span><span class="k">task</span><span class="w"> </span><span class="n">do_reset</span><span class="p">;</span>
+<span class="w">        </span><span class="k">begin</span>
+<span class="w">            </span><span class="n">clear_inputs</span><span class="p">;</span>
+<span class="w">            </span><span class="n">reset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">1</span><span class="p">;</span><span class="w"> </span><span class="k">repeat</span><span class="p">(</span><span class="mh">2</span><span class="p">)</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">);</span><span class="w"> </span><span class="n">reset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0</span><span class="p">;</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">);</span><span class="w"> </span><span class="p">#</span><span class="mh">1</span><span class="p">;</span>
+<span class="w">        </span><span class="k">end</span>
+<span class="w">    </span><span class="k">endtask</span>
+
+<span class="w">    </span><span class="k">task</span><span class="w"> </span><span class="n">apply_request</span><span class="p">;</span>
+<span class="w">        </span><span class="k">input</span><span class="w"> </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w"> </span><span class="n">in50</span><span class="p">,</span><span class="w"> </span><span class="n">in10</span><span class="p">,</span><span class="w"> </span><span class="n">in5</span><span class="p">,</span><span class="w"> </span><span class="n">in1</span><span class="p">,</span><span class="w"> </span><span class="n">item</span><span class="p">;</span>
+<span class="w">        </span><span class="k">begin</span>
+<span class="w">            </span><span class="p">@(</span><span class="k">negedge</span><span class="w"> </span><span class="n">clk</span><span class="p">);</span>
+<span class="w">            </span><span class="n">coinInNTD_50</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">in50</span><span class="p">;</span><span class="w"> </span><span class="n">coinInNTD_10</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">in10</span><span class="p">;</span>
+<span class="w">            </span><span class="n">coinInNTD_5</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">in5</span><span class="p">;</span><span class="w">  </span><span class="n">coinInNTD_1</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">in1</span><span class="p">;</span>
+<span class="w">            </span><span class="n">itemTypeIn</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">item</span><span class="p">;</span>
+<span class="w">            </span><span class="p">@(</span><span class="k">negedge</span><span class="w"> </span><span class="n">clk</span><span class="p">);</span>
+<span class="w">            </span><span class="n">clear_inputs</span><span class="p">;</span>
+<span class="w">        </span><span class="k">end</span>
+<span class="w">    </span><span class="k">endtask</span>
+
+<span class="w">    </span><span class="k">initial</span><span class="w"> </span><span class="k">begin</span>
+<span class="w">        </span><span class="n">clear_inputs</span><span class="p">;</span><span class="w"> </span><span class="n">reset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// 基本測試</span>
+<span class="w">        </span><span class="n">do_reset</span><span class="p">;</span>
+<span class="w">        </span><span class="n">apply_request</span><span class="p">(</span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d1</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d3</span><span class="p">,</span><span class="w"> </span><span class="n">ITEM_A</span><span class="p">);</span><span class="w">  </span><span class="c1">// exact pay 8</span>
+<span class="w">        </span><span class="k">repeat</span><span class="p">(</span><span class="mh">5</span><span class="p">)</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">);</span>
+
+<span class="w">        </span><span class="n">do_reset</span><span class="p">;</span>
+<span class="w">        </span><span class="n">apply_request</span><span class="p">(</span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d1</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mb">&#39;b10</span><span class="p">);</span><span class="w">   </span><span class="c1">// ITEM_B pay 10 &lt; 15</span>
+<span class="w">        </span><span class="k">repeat</span><span class="p">(</span><span class="mh">5</span><span class="p">)</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">);</span>
+
+<span class="w">        </span><span class="n">do_reset</span><span class="p">;</span>
+<span class="w">        </span><span class="n">apply_request</span><span class="p">(</span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d2</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mb">&#39;b10</span><span class="p">);</span><span class="w">   </span><span class="c1">// ITEM_B pay 20 &gt; 15</span>
+<span class="w">        </span><span class="k">repeat</span><span class="p">(</span><span class="mh">5</span><span class="p">)</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// 多次連續交易</span>
+<span class="w">        </span><span class="n">do_reset</span><span class="p">;</span>
+<span class="w">        </span><span class="n">apply_request</span><span class="p">(</span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d1</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d3</span><span class="p">,</span><span class="w"> </span><span class="n">ITEM_A</span><span class="p">);</span>
+<span class="w">        </span><span class="k">repeat</span><span class="p">(</span><span class="mh">5</span><span class="p">)</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">);</span>
+<span class="w">        </span><span class="n">apply_request</span><span class="p">(</span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d1</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d3</span><span class="p">,</span><span class="w"> </span><span class="n">ITEM_A</span><span class="p">);</span>
+<span class="w">        </span><span class="k">repeat</span><span class="p">(</span><span class="mh">5</span><span class="p">)</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">);</span>
+<span class="w">        </span><span class="n">apply_request</span><span class="p">(</span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d0</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d1</span><span class="p">,</span><span class="w"> </span><span class="mh">2</span><span class="mi">&#39;d3</span><span class="p">,</span><span class="w"> </span><span class="n">ITEM_A</span><span class="p">);</span>
+<span class="w">        </span><span class="k">repeat</span><span class="p">(</span><span class="mh">5</span><span class="p">)</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">);</span>
+
+<span class="w">        </span><span class="nb">$display</span><span class="p">(</span><span class="s">&quot;============================================================&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="nb">$display</span><span class="p">(</span><span class="s">&quot;ASSERTION SUMMARY&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="nb">$display</span><span class="p">(</span><span class="s">&quot;  PASS = %0d&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">checker</span><span class="p">.</span><span class="n">assert_pass</span><span class="p">);</span>
+<span class="w">        </span><span class="nb">$display</span><span class="p">(</span><span class="s">&quot;  FAIL = %0d&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">checker</span><span class="p">.</span><span class="n">assert_fail</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">checker</span><span class="p">.</span><span class="n">assert_fail</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mh">0</span><span class="p">)</span>
+<span class="w">            </span><span class="nb">$display</span><span class="p">(</span><span class="s">&quot;  ALL ASSERTIONS PASSED&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">            </span><span class="nb">$display</span><span class="p">(</span><span class="s">&quot;  SOME ASSERTIONS FAILED&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="nb">$display</span><span class="p">(</span><span class="s">&quot;============================================================&quot;</span><span class="p">);</span>
+
+<span class="w">        </span><span class="p">#</span><span class="mh">20</span><span class="p">;</span><span class="w"> </span><span class="nb">$finish</span><span class="p">;</span>
+<span class="w">    </span><span class="k">end</span>
+
+<span class="k">endmodule</span>
+</code></pre></div>
+<div class="code-footer"><label class="expand" for="__collapse1" tabindex="0" title="expand"></label><label class="collapse" for="__collapse1" tabindex="0" title="collapse"></label></div>
+</div>
+<div class="collapse-code"><input checked="checked" id="__collapse2" name="__collapse2" type="checkbox" /><div class="highlight"><span class="filename">GV 形式驗證流程（vending-simple.v）</span><pre><span></span><code>$ cd gv
+
+$ printf &#39;cirread -v designs/Simulation/vending-simple.v
+se sys vrf
+pdr -o 0
+q -f
+&#39; | ./gv
+
+setup&gt; cirread -v designs/Simulation/vending-simple.v
+Converted 0 1-valued FFs and 48 DC-valued FFs.
+
+setup&gt; se sys vrf
+
+vrf&gt; pdr -o 0
+Output 15 was asserted in frame  1 ( 1) (solved  1 out of 17 outputs).
+Output 13 was asserted in frame  2 ( 2) (solved  2 out of 17 outputs).
+Output 14 was asserted in frame  2 ( 2) (solved  3 out of 17 outputs).
+Output 16 was asserted in frame  2 ( 2) (solved  4 out of 17 outputs).
+Output  1 was asserted in frame  3 ( 3) (solved  5 out of 17 outputs).
+Output  2 was asserted in frame  4 ( 4) (solved  6 out of 17 outputs).
+Output  4 was asserted in frame  4 ( 4) (solved  7 out of 17 outputs).
+Output  5 was asserted in frame  6 ( 6) (solved  8 out of 17 outputs).
+Output  7 was asserted in frame  6 ( 6) (solved  9 out of 17 outputs).
+Output  8 was asserted in frame  7 ( 7) (solved 10 out of 17 outputs).
+Output 10 was asserted in frame  7 ( 7) (solved 11 out of 17 outputs).
+Output  6 was asserted in frame  8 ( 8) (solved 12 out of 17 outputs).
+Output  9 was asserted in frame  8 ( 8) (solved 13 out of 17 outputs).
+Output 11 was asserted in frame  8 ( 8) (solved 14 out of 17 outputs).
+Output  0 was asserted in frame  9 ( 9) (solved 15 out of 17 outputs).
+Output 12 was asserted in frame 10 (10) (solved 16 out of 17 outputs).
+Invariant F[15] : 85 clauses with 41 flops (out of 48) (cex = 0, ave = 22.82)
+Verification of invariant with 85 clauses was successful.  Time =     0.00 sec
+Properties:  All = 17. Proved = 1. Disproved = 16. Undecided = 0.   Time =     8.52 sec
+
+--- 分析 ---
+
+Output 0 = property p（assertion 信號）
+「Output 0 was asserted in frame 9」→ PDR 在第 9 個時脈找到反例，證明 p 可以為 1（即 bug 被觸發）。
+
+PDR 結果：
+  - Disproved = 16（包含 Output 0 在內的信號可以被觸發為 1）
+  - Proved = 1（某個 output 被證明永遠不為 1）
+  - 全程耗時 ≈ 8.5 秒
+
+這表示在無需撰寫任何 testbench input pattern 的情況下，
+形式驗證引擎自動窮舉所有可能輸入組合並找到了 bug。
+</code></pre></div>
+<div class="code-footer"><label class="expand" for="__collapse2" tabindex="0" title="expand"></label><label class="collapse" for="__collapse2" tabindex="0" title="collapse"></label></div>
+</div>
+<h2 id="ln-bdds-for-different-boolean-functions">[LN] BDDs for different Boolean functions<a class="headerlink" href="#ln-bdds-for-different-boolean-functions" title="Permanent link"></a></h2>
+<h3 id="try-to-build-bdds-from-different-types-of-functions-and-see-how-they-look-like">Try to build BDDs from different types of functions and see how they look like<a class="headerlink" href="#try-to-build-bdds-from-different-types-of-functions-and-see-how-they-look-like" title="Permanent link"></a></h3>
+<p>我用 GV 的 BDD calculator 對幾種不同類型的函數建構了 BDD，以下是實驗結果（變數順序都用 <code>bseto -file</code>）。</p>
+<p><strong>Adder</strong></p>
+<p>我寫了 8-bit 純組合加法器 <code>adder_8.v</code>（<code>assign sum = a + b;</code>），讀進 GV 後用 <code>bcons -all</code> 建構所有 PO 的 BDD。各 PO 的節點數為：</p>
+<table>
+<thead>
+<tr>
+<th>PO</th>
+<th>意義</th>
+<th>節點數</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>sum[0]</td>
+<td>3</td>
+</tr>
+<tr>
+<td>1</td>
+<td>sum[1]</td>
+<td>6</td>
+</tr>
+<tr>
+<td>2</td>
+<td>sum[2]</td>
+<td>13</td>
+</tr>
+<tr>
+<td>3</td>
+<td>sum[3]</td>
+<td>28</td>
+</tr>
+<tr>
+<td>4</td>
+<td>sum[4]</td>
+<td>59</td>
+</tr>
+<tr>
+<td>5</td>
+<td>sum[5]</td>
+<td>122</td>
+</tr>
+<tr>
+<td>6</td>
+<td>sum[6]</td>
+<td>249</td>
+</tr>
+<tr>
+<td>7</td>
+<td>sum[7]</td>
+<td>504</td>
+</tr>
+<tr>
+<td>8</td>
+<td>cout</td>
+<td>758</td>
+</tr>
+</tbody>
+</table>
+<p>高位的 BDD 節點數大約是低位的兩倍，因為 carry chain 必須把所有低位的進位組合展開。</p>
+<p><strong>Multiplier</strong></p>
+<p>8-bit 乘法器 <code>mult_8.v</code>（<code>assign prod = a * b;</code>）各 PO 的節點數為：</p>
+<table>
+<thead>
+<tr>
+<th>PO</th>
+<th>意義</th>
+<th>節點數</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>prod[0]</td>
+<td>3</td>
+</tr>
+<tr>
+<td>1</td>
+<td>prod[1]</td>
+<td>7</td>
+</tr>
+<tr>
+<td>2</td>
+<td>prod[2]</td>
+<td>17</td>
+</tr>
+<tr>
+<td>3</td>
+<td>prod[3]</td>
+<td>41</td>
+</tr>
+<tr>
+<td>4</td>
+<td>prod[4]</td>
+<td>101</td>
+</tr>
+<tr>
+<td>5</td>
+<td>prod[5]</td>
+<td>257</td>
+</tr>
+<tr>
+<td>6</td>
+<td>prod[6]</td>
+<td>635</td>
+</tr>
+<tr>
+<td>7</td>
+<td>prod[7]</td>
+<td>1645</td>
+</tr>
+<tr>
+<td>8</td>
+<td>prod[8]</td>
+<td>2915</td>
+</tr>
+<tr>
+<td>9</td>
+<td>prod[9]</td>
+<td>2870</td>
+</tr>
+<tr>
+<td>10–15</td>
+<td>prod[10]–prod[15]</td>
+<td>2492, 2027, 1554, 1026, 675, 453</td>
+</tr>
+</tbody>
+</table>
+<p>乘法器的 BDD 呈現先升後降的 diamond 形狀。前半段成長率約 2.3x，peak 在 prod[8]；高位因為 partial products 共享子結構而開始下降。整體來看乘法器的 BDD 比加法器大很多。</p>
+<p><strong>Counter</strong></p>
+<p>我寫了 8-bit 純組合 increment function <code>counter_comb_8.v</code>（<code>assign next_cnt = cnt + 8'd1;</code>），只有一個 8-bit 輸入。各 PO 的節點數為：</p>
+<table>
+<thead>
+<tr>
+<th>PO</th>
+<th>意義</th>
+<th>節點數</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>next_cnt[0]</td>
+<td>2</td>
+</tr>
+<tr>
+<td>1</td>
+<td>next_cnt[1]</td>
+<td>3</td>
+</tr>
+<tr>
+<td>2</td>
+<td>next_cnt[2]</td>
+<td>4</td>
+</tr>
+<tr>
+<td>3</td>
+<td>next_cnt[3]</td>
+<td>5</td>
+</tr>
+<tr>
+<td>4</td>
+<td>next_cnt[4]</td>
+<td>6</td>
+</tr>
+<tr>
+<td>5</td>
+<td>next_cnt[5]</td>
+<td>7</td>
+</tr>
+<tr>
+<td>6</td>
+<td>next_cnt[6]</td>
+<td>8</td>
+</tr>
+<tr>
+<td>7</td>
+<td>next_cnt[7]</td>
+<td>9</td>
+</tr>
+</tbody>
+</table>
+<p>Counter 的 BDD 每位只多 1 個節點，完全是線性成長。這是因為 increment 的 carry chain 只依賴「所有更低位是否都是 1」這個單一條件，不像加法器有兩組獨立輸入的交互作用。</p>
+<p><strong>Random logic function</strong></p>
+<p>我寫了一個 8 個輸入、1 個輸出的隨機組合邏輯：</p>
+<div class="highlight"><pre><span></span><code><span class="k">assign</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mh">0</span><span class="p">]</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mh">3</span><span class="p">]</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mh">5</span><span class="p">])</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mh">1</span><span class="p">]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mh">4</span><span class="p">])</span>
+<span class="w">         </span><span class="o">^</span><span class="w"> </span><span class="p">(</span><span class="o">~</span><span class="n">x</span><span class="p">[</span><span class="mh">2</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mh">6</span><span class="p">])</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mh">7</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mh">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="o">~</span><span class="n">x</span><span class="p">[</span><span class="mh">4</span><span class="p">]);</span>
+</code></pre></div>
+<p>GV 建出的 BDD 有 <strong>35 個節點</strong>。作為對照，4 個輸入的版本只有 <strong>7 個節點</strong>。隨機邏輯的 BDD 大小取決於函數本身的結構——不像加法器或乘法器有明確的規律，每個函數的節點數差異很大。</p>
+<p><strong>Anything else?</strong></p>
+<p>我還額外測試了 4-bit 的 adder 和 multiplier 作為對照：</p>
+<table>
+<thead>
+<tr>
+<th>函數</th>
+<th>PO0</th>
+<th>PO1</th>
+<th>PO2</th>
+<th>PO3</th>
+<th>PO4</th>
+<th>最大</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>adder_4</td>
+<td>3</td>
+<td>6</td>
+<td>13</td>
+<td>28</td>
+<td>42</td>
+<td>42</td>
+</tr>
+<tr>
+<td>mult_4</td>
+<td>3</td>
+<td>7</td>
+<td>17</td>
+<td>41</td>
+<td>47</td>
+<td>47</td>
+</tr>
+<tr>
+<td>counter_4</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td>5</td>
+<td>—</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<p>4-bit 時 adder 和 multiplier 的差距還不大，但到 8-bit 時差距就非常明顯了（adder 最大 758 vs multiplier 最大 2915）。</p>
+<p>另外，可以參考 RicBDD 專案（<a href="https://github.com/ric2k1/RicBDD">https://github.com/ric2k1/RicBDD</a>）中的 <code>testBdd.cpp</code>，用 C++ 程式化地建構 BDD，不需要手動寫很長的 dofile。</p>
+<h3 id="discuss-the-growth-of-the-number-of-bdd-nodes-wst-input-sizes-whats-the-complexity">Discuss the growth of the number of BDD nodes w.s.t. input sizes. What's the complexity?<a class="headerlink" href="#discuss-the-growth-of-the-number-of-bdd-nodes-wst-input-sizes-whats-the-complexity" title="Permanent link"></a></h3>
+<p>從上面的實驗整理出各類函數 BDD 節點數的成長趨勢：</p>
+<ul>
+<li><strong>Adder</strong>：每多一位，carry 的 BDD 節點數大約翻倍。在 file order 下最壞的 PO 成長率 ≈ 2.0x，所以 n-bit adder 的最大單一 PO 的 BDD 大小大約是 O(2^n)。不過如果用更好的變數順序（像 interleaved），成長可以降到線性。</li>
+<li><strong>Multiplier</strong>：前半段成長率 ≈ 2.3x，比加法器更快。Bryant (1991) 已證明乘法器在<strong>任何</strong>變數順序下的 BDD 大小至少為 2^(n/8)，所以乘法器是 BDD 指數下界的經典例子。</li>
+<li><strong>Counter (increment)</strong>：完全線性成長，每位只多 1 個節點。這是最 BDD-friendly 的算術函數之一。</li>
+<li><strong>Random logic</strong>：大小不可預測，取決於函數結構。根據 Shannon Effect，大多數 n 變數的布林函數需要 ≈ 2^n / n 個 BDD 節點，只有少數具有規則結構的函數才能被有效壓縮。</li>
+</ul>
+<p>做完這些實驗之後，我最大的 takeaway 是：BDD 不是萬能的。看到 multiplier 的指數成長時我真的蠻震驚的——同樣是 8-bit，加法器最多 758 節點、乘法器就飆到 2915，而且 Bryant 已經證明乘法器無論怎麼排變數都是指數級。這讓我理解為什麼後面的課程會教 SAT-based 的方法——因為 BDD 在某些結構上就是會爆，需要其他工具來補。另一方面，counter 的完美線性成長讓我看到 BDD 在適合的函數上可以多有效率，關鍵就在於函數本身有沒有可以被 BDD 利用的規律結構。</p>
+<div class="collapse-code"><input checked="checked" id="__collapse3" name="__collapse3" type="checkbox" /><div class="highlight"><span class="filename">GV BDD 建構流程範例</span><pre><span></span><code>$ cd gv
+
+# 建構 8-bit adder 的 BDD
+$ printf &#39;cirread -v adder_8.v
+bseto -file
+bcons -all
+brep 84
+brep 85
+...
+brep 92
+q -f
+&#39; | ./gv
+# 節點數：3, 6, 13, 28, 59, 122, 249, 504, 758
+
+# 建構 8-bit multiplier 的 BDD
+$ printf &#39;cirread -v mult_8.v
+bseto -file
+bcons -all
+brep 480
+...
+brep 495
+q -f
+&#39; | ./gv
+# 節點數：3, 7, 17, 41, 101, 257, 635, 1645, 2915, 2870, 2492, 2027, 1554, 1026, 675, 453
+
+# 建構 8-bit counter 的 BDD
+$ printf &#39;cirread -v counter_comb_8.v
+bseto -file
+bcons -all
+brep 34 ... brep 41
+q -f
+&#39; | ./gv
+# 節點數：2, 3, 4, 5, 6, 7, 8, 9
+</code></pre></div>
+<div class="code-footer"><label class="expand" for="__collapse3" tabindex="0" title="expand"></label><label class="collapse" for="__collapse3" tabindex="0" title="collapse"></label></div>
+</div>
+<h2 id="ln-the-worst-case-size-of-bdds">[LN] The worst-case size of BDDs<a class="headerlink" href="#ln-the-worst-case-size-of-bdds" title="Permanent link"></a></h2>
+<h3 id="before-reading-the-referenced-paper-below-how-do-you-computeestimate-the-worst-case-size-of-bdds-for-any-arbitrary-functions">Before reading the referenced paper below, how do you compute/estimate the worst-case size of BDDs for any arbitrary functions?<a class="headerlink" href="#before-reading-the-referenced-paper-below-how-do-you-computeestimate-the-worst-case-size-of-bdds-for-any-arbitrary-functions" title="Permanent link"></a></h3>
+<p>我先自己想了一下。一個 n 變數的布林函數的 truth table 有 2^n 列。不化簡的完全 BDD（UOBDD）就是一棵完全二元樹，有 2^(n+1) − 1 個節點。ROBDD 透過刪除對稱節點和合併同構子樹可以壓縮，但最壞的情況就是函數幾乎沒有對稱性、也沒有可合併的子樹。</p>
+<p>用 Shannon counting argument 可以粗略估計下界：n 變數的布林函數共有 2<sup>(2</sup>n) 個，但最多 m 個節點的 ROBDD 個數遠小於此。如果 m 太小就不可能表示所有函數。所以必然存在需要很大 BDD 的函數。粗略來說，worst-case 的下界大約是 2^n / n。</p>
+<p>直覺上我覺得 worst-case 不會到 UOBDD 的全部大小，因為至少 terminal node 可以共用（所有 ⊤ 和 ⊥ 各只需一個），而且深層的子樹很可能出現重複。但確切的公式需要更仔細的分析。</p>
+<h3 id="summarize-the-paper-what-is-the-worst-case-bdd-size-and-how-to-derive-it-please-highlight-some-interesting-points-from-the-paper">Summarize the paper: what is the worst-case BDD size and how to derive it. Please highlight some interesting points from the paper<a class="headerlink" href="#summarize-the-paper-what-is-the-worst-case-bdd-size-and-how-to-derive-it-please-highlight-some-interesting-points-from-the-paper" title="Permanent link"></a></h3>
+<p>論文是 Jim Newton 與 Didier Verna 的 "A Theoretical and Numerical Analysis of the Worst-Case Size of Reduced Ordered Binary Decision Diagrams"（2018）。</p>
+<p><strong>推導方法</strong>：作者觀察到 worst-case ROBDD 呈現菱形（diamond）形狀。從根節點往下看，每一層的節點數以 2^i 指數成長（第 i 層最多 2^(i-1) 個節點）。從最底層往上看，每一層可容納的不同節點數受限於下一層節點數 nR 的組合：C(nR, 2) + nR（因為每個節點有兩個子指標，不同的子指標配對數就是 combination 加上兩個指標相同的情況）。最寬處就是這兩種成長率相遇的地方。</p>
+<p><strong>三個化簡規則</strong>：</p>
+<ol>
+<li><strong>Terminal rule</strong>：所有 ⊤/⊥ 葉節點共用單一物件</li>
+<li><strong>Deletion rule</strong>：若某節點的正負子節點相同（對稱節點），刪除它</li>
+<li><strong>Merging rule</strong>：若兩個節點的正負子節點都相同（同構節點），合併</li>
+</ol>
+<p><strong>Worst-case 大小公式</strong>：第 i 層的最大節點數為 min(2^(i-1), nR_i)，其中 nR_i 從底部往上遞推計算。論文導出精確的遞推公式來算出 |ROBDD_n|。</p>
+<p><strong>殘餘壓縮比</strong>（ρ_n = |ROBDD_n| / |UOBDD_n|）隨 n 增大趨近於 0，代表即使最壞情況下 ROBDD 相對 UOBDD 仍有顯著壓縮。</p>
+<p><strong>有趣的觀點</strong>：</p>
+<ul>
+<li>1 到 4 變數的 worst-case 節點數分別是 3、5、8、11。</li>
+<li>論文提供了一個直接建構 worst-case ROBDD 的演算法，不需窮舉。</li>
+<li><strong>Shannon Effect</strong>：對大多數隨機布林函數，ROBDD 大小非常接近 worst-case 大小。平均與最壞的差距隨 n 增大可忽略。也就是說「大部分函數都接近最壞」。</li>
+<li>標準差的成長看起來比線性快，但相對於平均值來說，集中度越來越高。</li>
+</ul>
+<h3 id="design-some-experiments-to-verify-the-statements-of-this-paper">Design some experiments to verify the statements of this paper<a class="headerlink" href="#design-some-experiments-to-verify-the-statements-of-this-paper" title="Permanent link"></a></h3>
+<p>我設計了幾個實驗來驗證論文的結論：</p>
+<p><strong>實驗 1：比較實際 BDD 大小與 UOBDD 大小</strong></p>
+<table>
+<thead>
+<tr>
+<th>電路</th>
+<th>n (變數數)</th>
+<th>最大 PO BDD 節點數</th>
+<th>UOBDD 大小 (2^(n+1)−1)</th>
+<th>壓縮比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>adder_4</td>
+<td>8</td>
+<td>42</td>
+<td>511</td>
+<td>8.2%</td>
+</tr>
+<tr>
+<td>adder_8</td>
+<td>16</td>
+<td>758</td>
+<td>131071</td>
+<td>0.58%</td>
+</tr>
+<tr>
+<td>mult_4</td>
+<td>8</td>
+<td>47</td>
+<td>511</td>
+<td>9.2%</td>
+</tr>
+<tr>
+<td>mult_8</td>
+<td>16</td>
+<td>2915</td>
+<td>131071</td>
+<td>2.2%</td>
+</tr>
+<tr>
+<td>counter_8</td>
+<td>8</td>
+<td>9</td>
+<td>511</td>
+<td>1.8%</td>
+</tr>
+</tbody>
+</table>
+<p>隨著 n 增加，壓縮比確實急劇下降，和論文所述的 ρ_n → 0 一致。</p>
+<p><strong>實驗 2：同一類電路不同位寬的成長</strong></p>
+<table>
+<thead>
+<tr>
+<th>位寬</th>
+<th>adder 最大 PO</th>
+<th>mult 最大 PO</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4-bit</td>
+<td>42</td>
+<td>47</td>
+</tr>
+<tr>
+<td>8-bit</td>
+<td>758</td>
+<td>2915</td>
+</tr>
+</tbody>
+</table>
+<p>Adder 從 42 到 758（≈ 18x），multiplier 從 47 到 2915（≈ 62x）。乘法器的成長速度遠超加法器，符合 Bryant 的指數下界理論。</p>
+<p><strong>實驗 3：對比 worst-case 理論值</strong></p>
+<p>論文說 4 變數的 worst-case 是 11 個節點。我的 4-bit counter 只要 5 個、random logic (4 input) 是 7 個、4-bit adder 最大 PO 是 42 但那是 8 個變數。這些都遠低於 worst case，因為真實電路通常具有結構規律性。要達到 worst case 需要特別設計的函數——論文中也提供了構造方法。</p>
+<p>我覺得這篇論文最讓我印象深刻的一點是 Shannon Effect：「大部分的布林函數其實都接近 worst case」。這聽起來很悲觀，但好消息是——真實電路不是隨機函數。真實電路是人類為了特定目的設計的，天然帶有結構（對稱性、locality、重複的子結構），所以實際的 BDD 通常遠小於理論 worst case。這讓我理解為什麼 BDD 在實務上仍然有用——不是因為 worst case 小（它其實很大），而是因為「我們在意的函數」通常不是 worst case。</p>
+<p>延伸來想：如果要評估一個新的 DD 技術好不好用，不應該只看 worst-case complexity，更應該看它在「真實電路 benchmark」上的表現。這也是為什麼 ISCAS benchmark 之類的測試套件在 EDA 研究中這麼重要。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+  
+
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        
+
+<footer class="md-footer">
+  
+    <nav
+      class="md-footer__inner md-grid"
+      aria-label="footer.title"
+    >
+      
+        <a
+          href="Week%202.html"
+          class="md-footer__link md-footer__link--prev"
+          rel="prev"
+        >
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Week 2
+            </div>
+          </div>
+        </a>
+      
+      
+        <a
+          href="Week%204.html"
+          class="md-footer__link md-footer__link--next"
+          rel="next"
+        >
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Week 4
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        with emoji by
+        <a href="https://github.com/twitter/twemoji" target="_blank" rel="noopener">
+          Twemoji
+        </a>
+      </div>
+      
+<div class="md-social">
+  
+</div>
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.tabs", "navigation.top", "announce.dismiss", "content.tabs.link", "search.share", "content.code.copy", "content.code.annotations", "content.action.edit", "content.action.view", "content.tooltips"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="../assets/pymdownx-extras/mermaid-config-override.js"></script>
+      
+        <script src="../assets/pymdownx-extras/extra-loader-iLQ-keay.js"></script>
+      
+        <script src="../assets/pymdownx-extras/mermaid-render-fix.js"></script>
+      
+        <script src="../assets/pymdownx-extras/mermaid-zoom.js"></script>
+      
+        <script src="../assets/pymdownx-extras/toc-fold.js"></script>
+      
+        <script src="../assets/pymdownx-extras/image-zoom.js"></script>
+      
+        <script src="../assets/pymdownx-extras/folder-path-bar.js?v=20260320-3"></script>
+      
+        <script src="../assets/pymdownx-extras/legacy-image-width.js"></script>
+      
+        <script src="../assets/pymdownx-extras/source-jump.js"></script>
+      
+    
+  </body>
+</html>
