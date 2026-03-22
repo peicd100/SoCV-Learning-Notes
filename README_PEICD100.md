@@ -89,6 +89,45 @@ git clone https://github.com/peicd100/university-notes.git
 
 ## 使用者要求
 - 此資料夾已明確視為專案，後續持續維護 `README_PEICD100.md`、`.gitignore`、`專案規格書.md`。
+- `AGENTS.md`、`README_PEICD100.md`、`專案規格書.md` 已加入 `.gitignore`，不上傳到 git。
+
+### SoCV Learning Notes [LN] 寫作規格
+
+以下是使用者確認的 LN 寫作標準，之後每次寫新的 Week 都要遵守：
+
+**目標分數**：95–100（頂尖）
+
+**評分標準**（來自 NTU COOL）：
+- 95–100 頂尖：五題完整深入 + 明顯 insight + 高品質延伸
+- 90–94 優秀：五題完整清楚 + 有 insight 或部分延伸
+- 85–89 良好：五題正確完整，有基本解釋與結構
+- 80–84 基本完成：五題皆答，內容正確但較簡略
+- 75–79 偏弱：有回答但過於簡短或缺乏說明
+- 70 以下 不足：缺答、錯誤多或與題目無關
+
+**評分機制**：
+- LN#1 (Week 3 評分)：完整評分第一週的 5 個子題，第二週只看進度
+- LN#2 (Week 5 評分)：完整評分第三週的子題，第四週只看進度
+- 每次由兩位助教評分，取平均
+
+**寫作原則**：
+1. **口吻**：學生第一人稱，正在寫作業的口吻（「我一開始覺得...」「做完之後我發現...」「這讓我意識到...」）
+2. **禁用詞**：不可使用「教材」「此教材」「本教材」「講義要求」等詞
+3. **h3 標題**：使用講義英文原文（原封不動），不自創中文標題
+4. **每個子題/任務獨立 h3**：講義有幾個問題就回答幾個，不合併、不跳過
+5. **每個 h3 的內容結構**（至少 3-5 段）：
+   - 核心回答（直接回答問題）
+   - 具體例子/證據（實際案例、數字、對比表、程式碼）
+   - 個人 insight（「我覺得...」「我注意到...」「這讓我想到...」）
+   - 延伸思考（open question / 連結其他主題 / 額外實驗）
+6. **程式碼**：使用 `/// collapse-code` 語法包裹
+7. **GV 工具**：位於 `/media/sf_SoCV_Learning_Notes/gv`，可用於 BDD 實驗與形式驗證
+8. **教材位置**：`/media/sf_SoCV_Learning_Notes/教材/` 中的 PDF 檔
+9. **課程表**（用於判斷每週範圍，"XX/XX class ends here" 標記在 Notion 講義上）：
+   - Week 1 (02/25)：Lecture 00 + 01
+   - Week 2 (03/04)：Lecture 01 + 02
+   - Week 3 (03/11)：Lecture 02(剩餘) + 03
+   - Week 4 (03/18)：Lecture 04
 - 任何選取有關的東西，都要用四個角選取敵人的風格，不要用圓角膠囊式高亮。
 - 主題色都用 `cyan`。
 - 此專案使用 `mkdocs` conda 環境。
@@ -162,3 +201,6 @@ git clone https://github.com/peicd100/university-notes.git
 - 2026-03-22：已同步重整 `mkdocs.yml` 的 `Verilog Quick Reference` 導覽，改為 `首頁 / 學習資源 / 基礎語法 / 程序式寫法 / 模擬與常見電路` 三層主題結構；本次已檢查 `.gitignore`，不需新增忽略規則。
 - 2026-03-22：已將窄版右側 TOC 的 `目錄` 浮動按鈕由右下角移到右上角、頁首下方，避免遮住頁尾 `Next` 翻頁按鈕；同時更新 `自定義.css` 的版本參數，降低手機瀏覽器快取舊樣式的機率，並再次確認 `.gitignore` 無需新增規則。
 - 2026-03-22：已再把窄版 `目錄` 控制改成 header 內的原生 icon 按鈕，直接插在 search 按鈕右邊；作法是讓 `toc-fold.js` 在 mobile 時把按鈕掛到 `.md-header`，並沿用 `md-header__button md-icon` 風格，同步補上 `aria-expanded` / `aria-controls` / `aria-label`，且在 search 展開時自動隱藏；本次也把 `自定義.css` 版本參數更新為 `20260322-2`，並再次確認 `.gitignore` 不需變更。
+- 2026-03-22：已更新 `docs/md/Week 3.md` 加入 BDD 相關 [LN]（BDDs for different Boolean functions、The worst-case size of BDDs），並新增 `docs/md/Week 4.md`（Exploring BDD variable orders、Playing with different DDs），使用 GV 工具進行 BDD 實驗取得實際數據。
+- 2026-03-22：重寫 Week 3/4 所有 BDD [LN]：h3 改用英文原文、每個子問題獨立回答、學生口吻、補 Counter/Random logic/rfile 實驗與 *BMD 展開。
+- 2026-03-22：對標 95-100 評分標準全面提升 Week 1-4：Week 1 從 17 行重寫為完整深入回答（含 HW-SW 對比表、抽象層次、IP reuse 數據、狀態空間量化）；Week 2 補設計歷程與踩坑；Week 3/4 每個 h3 補 insight 段落。

@@ -1,0 +1,546 @@
+# Week 3
+## [LN] Writing assertions to your RTL design
+### Was it easy to write assertions for this design?
+
+我覺得對這個販賣機 RTL 來說，撰寫簡單的 safety assertions 是相對容易的。我寫了以下幾條：
+
+- **狀態合法性**：state 永遠只能是 `SERVICE_ON`、`SERVICE_BUSY`、`SERVICE_OFF` 三者之一（不會出現 `2'b11`）。
+- **庫存上限**：每種硬幣庫存不會超過 7（因為 3-bit 飽和加法的設計）。
+- **空閒輸出清零**：在 `SERVICE_ON` 期間，所有 coinOut 與 itemTypeOut 應為 0。
+- **不出貨時不扣庫存**：若金額不足而全額退幣，庫存不應被改動。
+
+這些屬於 invariant / safety property（AG p），只需在每個 clock edge 檢查一個布林條件是否成立，語法上只是一個 `always @(posedge clk)` 配 `if (!cond) $error(...)` 就能完成。
+
+比較困難的是跨時脈的 protocol assertions。例如我想確認「從 SERVICE_ON 接受 request 到 SERVICE_OFF 輸出結果的過程中，找零金額 + 商品價格 = 投入金額」，因為投入金額在 ON → BUSY 的瞬間被 latch 進內部暫存器，必須在不同狀態下追蹤同一組數值才能驗證守恆關係。這類 assertions 需要對設計的時序行為有深入理解。
+
+在 GV 工具中，assertions 的做法是將要驗證的條件 promote 成一個 primary output（例如 `output p`），當 `p = 1` 時代表違反了 property。之後可以用 PDR、BMC、BDD-based model checking 等形式驗證引擎對該 output 做窮舉檢查。這種做法的好處是不需要撰寫 testbench 的輸入激勵，形式驗證引擎會自動搜索所有可能的輸入組合。
+
+我覺得 assertion 最大的價值不只是「找 bug」，而是它迫使我把「什麼是正確行為」這件事用精確的邏輯寫下來。寫 assertion 的過程其實就是在重新審視 spec——哪些不變量應該永遠成立？哪些狀態轉移是合法的？這個思考過程本身就能揪出很多「我以為我懂但其實沒想清楚」的地方。
+
+### Did the assertions help reveal any bugs? If so, what kind of bugs?
+
+在我 Week 2 自己寫的販賣機設計上，所有 assertions 均通過，因為那個設計在 testbench 階段就已經充分驗證過了。
+
+不過我拿 GV 附的範例設計 `vending-simple.v` 來試，assertions 確實揭露了一個隱藏的 bug。那個設計在模組內部定義了一個 property output：
+
+```v
+assign p = initialized
+        && (serviceTypeOut == `SERVICE_OFF)
+        && (itemTypeOut == `ITEM_NONE)
+        && (outExchange != inputValue);
+```
+
+這個 assertion 的語意是：當機器進入 `SERVICE_OFF` 且沒有出貨（交易被拒絕）時，退還的零錢總額必須等於使用者投入的金額。若不相等，就代表有 bug。
+
+使用 GV 的 PDR（Property Directed Reachability）引擎進行形式驗證：
+
+```
+Output  0 was asserted in frame  9
+```
+
+PDR 在第 9 個時脈框架就找到了一組反例。
+
+根源分析：bug 位於 `vending-simple.v` 的找零邏輯中的 `NTD_1` 分支。當機器正在用 $1 硬幣找零、但庫存中的 $1 硬幣已用盡（`countNTD_1 == 3'd0`）時，設計錯誤地直接跳到 `SERVICE_OFF` 並將所有 coinOut 歸零、itemTypeOut 設為 `ITEM_NONE`。這導致使用者投入的錢既沒有買到商品、也沒有被正確退還——零錢輸出為 0，但投入金額 inputValue 非零，assertion 因此觸發。
+
+這類 bug 在 directed simulation 中很難被發現，因為它只在特定的庫存狀態與投幣組合下才會觸發。形式驗證的窮舉搜索則可以系統性地找到。
+
+這個結果讓我很震撼——PDR 只花了 8.5 秒就找到了一個我用 directed test 可能永遠都不會去測的 corner case。而且它不需要我去想「應該測什麼輸入」，它自己會搜索整個輸入空間。這讓我深刻理解了 Week 1 講的「為什麼不能只靠 simulation」——不管寫多少 test case，都有遺漏的可能，但形式驗證是數學上的窮舉。
+
+### If you found bugs, revise your RTL design and repeat the verification process.
+
+上述 `vending-simple.v` 的 bug 位於以下片段（第 222–235 行附近）：
+
+```v
+`NTD_1 : begin
+    if (serviceValue >= `VALUE_NTD_1) begin
+        if (countNTD_1 == 3'd0) begin
+            // BUG: 直接跳 SERVICE_OFF 並清空輸出，導致退幣金額為 0
+            serviceTypeOut_w  = `SERVICE_OFF;  // bug 1
+            coinOutNTD_50_w   = 3'd0;
+            ...
+```
+
+我想到的修正方向：當最小面額硬幣用盡且仍需找零時，應該放棄本次交易並全額退幣。具體做法是把 `serviceValue_w` 設回 `inputValue`、`itemTypeOut_w` 設為 `ITEM_NONE`，然後重新從大面額開始退幣。
+
+在我自己的 Week 2 設計中，因為我採用了不同的找零策略（一次性在 `SERVICE_BUSY` 的組合邏輯中完成所有找零計算，任何面額不足就直接全額退幣），所以不存在這個 bug。assertions 全部通過，確認了設計的正確性。
+
+回頭看這個經驗，我發現設計架構的選擇（一次算完 vs. 多 cycle 逐幣）對可驗證性有直接影響。我的「一次算完」策略雖然組合邏輯比較大，但狀態空間小、行為容易預測；`vending-simple.v` 的多 cycle 策略則引入了中間狀態，增加了 bug 藏身的角落。這讓我學到：在設計 RTL 的時候就應該考慮「這個架構容不容易驗證」，而不是寫完再來補 assertion。
+
+以下是我為 Week 2 設計寫的 assertion checker 模組，以及用 GV 對 `vending-simple.v` 跑形式驗證的完整流程。
+
+
+/// collapse-code  
+```v title="vending_machine_checker.v（Week 2 設計的 assertion 模組）"
+`timescale 1ns / 1ps
+
+module vending_machine_checker (
+    input              clk,
+    input              reset,
+    input      [1:0]   coinInNTD_50,
+    input      [1:0]   coinInNTD_10,
+    input      [1:0]   coinInNTD_5,
+    input      [1:0]   coinInNTD_1,
+    input      [1:0]   itemTypeIn,
+    input      [2:0]   coinOutNTD_50,
+    input      [2:0]   coinOutNTD_10,
+    input      [2:0]   coinOutNTD_5,
+    input      [2:0]   coinOutNTD_1,
+    input      [1:0]   itemTypeOut,
+    input      [1:0]   serviceTypeOut,
+    input      [2:0]   inv50,
+    input      [2:0]   inv10,
+    input      [2:0]   inv5,
+    input      [2:0]   inv1,
+    input      [1:0]   state
+);
+
+    localparam [1:0] ITEM_NONE    = 2'b00;
+    localparam [1:0] SERVICE_ON   = 2'b00;
+    localparam [1:0] SERVICE_BUSY = 2'b01;
+    localparam [1:0] SERVICE_OFF  = 2'b10;
+
+    integer assert_pass, assert_fail;
+
+    initial begin
+        assert_pass = 0;
+        assert_fail = 0;
+    end
+
+    // A1: 狀態合法性 — state 永遠不為 2'b11
+    always @(posedge clk) begin
+        if (!reset) begin
+            if (state == 2'b11) begin
+                assert_fail = assert_fail + 1;
+                $display("[ASSERT FAIL] A1: illegal state 2'b11 at time %0t", $time);
+            end else begin
+                assert_pass = assert_pass + 1;
+            end
+        end
+    end
+
+    // A2: 庫存上限 — 每種硬幣不超過 7
+    always @(posedge clk) begin
+        if (!reset) begin
+            if (inv50 > 3'd7 || inv10 > 3'd7 || inv5 > 3'd7 || inv1 > 3'd7) begin
+                assert_fail = assert_fail + 1;
+                $display("[ASSERT FAIL] A2: inventory overflow at time %0t", $time);
+            end else begin
+                assert_pass = assert_pass + 1;
+            end
+        end
+    end
+
+    // A3: SERVICE_ON 期間輸出應為 0
+    always @(posedge clk) begin
+        if (!reset && serviceTypeOut == SERVICE_ON) begin
+            if (coinOutNTD_50 != 0 || coinOutNTD_10 != 0 ||
+                coinOutNTD_5  != 0 || coinOutNTD_1  != 0 ||
+                itemTypeOut   != ITEM_NONE) begin
+                assert_fail = assert_fail + 1;
+                $display("[ASSERT FAIL] A3: non-zero output in SERVICE_ON at time %0t", $time);
+            end else begin
+                assert_pass = assert_pass + 1;
+            end
+        end
+    end
+
+    // A4: 狀態轉移合法性 — SERVICE_ON 不會直接跳到 SERVICE_OFF
+    reg [1:0] prev_state;
+    always @(posedge clk or posedge reset) begin
+        if (reset)
+            prev_state <= SERVICE_ON;
+        else
+            prev_state <= state;
+    end
+
+    always @(posedge clk) begin
+        if (!reset) begin
+            if (prev_state == SERVICE_ON && state == SERVICE_OFF) begin
+                assert_fail = assert_fail + 1;
+                $display("[ASSERT FAIL] A4: illegal ON->OFF transition at time %0t", $time);
+            end else begin
+                assert_pass = assert_pass + 1;
+            end
+        end
+    end
+
+endmodule
+```
+///
+
+
+/// collapse-code  
+```v title="tb_vending_with_assertions.v（帶 assertions 的 testbench 片段）"
+`timescale 1ns / 1ps
+
+module tb_vending_with_assertions;
+
+    reg         clk;
+    reg         reset;
+    reg  [1:0]  coinInNTD_50;
+    reg  [1:0]  coinInNTD_10;
+    reg  [1:0]  coinInNTD_5;
+    reg  [1:0]  coinInNTD_1;
+    reg  [1:0]  itemTypeIn;
+
+    wire [2:0]  coinOutNTD_50;
+    wire [2:0]  coinOutNTD_10;
+    wire [2:0]  coinOutNTD_5;
+    wire [2:0]  coinOutNTD_1;
+    wire [1:0]  itemTypeOut;
+    wire [1:0]  serviceTypeOut;
+
+    localparam [1:0] ITEM_NONE = 2'b00;
+    localparam [1:0] ITEM_A    = 2'b01;
+
+    vending_machine dut (
+        .clk(clk), .reset(reset),
+        .coinInNTD_50(coinInNTD_50), .coinInNTD_10(coinInNTD_10),
+        .coinInNTD_5(coinInNTD_5),   .coinInNTD_1(coinInNTD_1),
+        .itemTypeIn(itemTypeIn),
+        .coinOutNTD_50(coinOutNTD_50), .coinOutNTD_10(coinOutNTD_10),
+        .coinOutNTD_5(coinOutNTD_5),   .coinOutNTD_1(coinOutNTD_1),
+        .itemTypeOut(itemTypeOut),
+        .serviceTypeOut(serviceTypeOut)
+    );
+
+    vending_machine_checker checker (
+        .clk(clk), .reset(reset),
+        .coinInNTD_50(coinInNTD_50), .coinInNTD_10(coinInNTD_10),
+        .coinInNTD_5(coinInNTD_5),   .coinInNTD_1(coinInNTD_1),
+        .itemTypeIn(itemTypeIn),
+        .coinOutNTD_50(coinOutNTD_50), .coinOutNTD_10(coinOutNTD_10),
+        .coinOutNTD_5(coinOutNTD_5),   .coinOutNTD_1(coinOutNTD_1),
+        .itemTypeOut(itemTypeOut),
+        .serviceTypeOut(serviceTypeOut),
+        .inv50(dut.inv50), .inv10(dut.inv10),
+        .inv5(dut.inv5),   .inv1(dut.inv1),
+        .state(dut.state)
+    );
+
+    initial clk = 0;
+    always #5 clk = ~clk;
+
+    task clear_inputs;
+        begin
+            coinInNTD_50 = 2'd0; coinInNTD_10 = 2'd0;
+            coinInNTD_5  = 2'd0; coinInNTD_1  = 2'd0;
+            itemTypeIn   = ITEM_NONE;
+        end
+    endtask
+
+    task do_reset;
+        begin
+            clear_inputs;
+            reset = 1; repeat(2) @(posedge clk); reset = 0; @(posedge clk); #1;
+        end
+    endtask
+
+    task apply_request;
+        input [1:0] in50, in10, in5, in1, item;
+        begin
+            @(negedge clk);
+            coinInNTD_50 = in50; coinInNTD_10 = in10;
+            coinInNTD_5  = in5;  coinInNTD_1  = in1;
+            itemTypeIn   = item;
+            @(negedge clk);
+            clear_inputs;
+        end
+    endtask
+
+    initial begin
+        clear_inputs; reset = 0;
+
+        // 基本測試
+        do_reset;
+        apply_request(2'd0, 2'd0, 2'd1, 2'd3, ITEM_A);  // exact pay 8
+        repeat(5) @(posedge clk);
+
+        do_reset;
+        apply_request(2'd0, 2'd1, 2'd0, 2'd0, 2'b10);   // ITEM_B pay 10 < 15
+        repeat(5) @(posedge clk);
+
+        do_reset;
+        apply_request(2'd0, 2'd2, 2'd0, 2'd0, 2'b10);   // ITEM_B pay 20 > 15
+        repeat(5) @(posedge clk);
+
+        // 多次連續交易
+        do_reset;
+        apply_request(2'd0, 2'd0, 2'd1, 2'd3, ITEM_A);
+        repeat(5) @(posedge clk);
+        apply_request(2'd0, 2'd0, 2'd1, 2'd3, ITEM_A);
+        repeat(5) @(posedge clk);
+        apply_request(2'd0, 2'd0, 2'd1, 2'd3, ITEM_A);
+        repeat(5) @(posedge clk);
+
+        $display("============================================================");
+        $display("ASSERTION SUMMARY");
+        $display("  PASS = %0d", checker.assert_pass);
+        $display("  FAIL = %0d", checker.assert_fail);
+        if (checker.assert_fail == 0)
+            $display("  ALL ASSERTIONS PASSED");
+        else
+            $display("  SOME ASSERTIONS FAILED");
+        $display("============================================================");
+
+        #20; $finish;
+    end
+
+endmodule
+```
+///
+
+
+/// collapse-code  
+```txt title="GV 形式驗證流程（vending-simple.v）"
+$ cd gv
+
+$ printf 'cirread -v designs/Simulation/vending-simple.v
+se sys vrf
+pdr -o 0
+q -f
+' | ./gv
+
+setup> cirread -v designs/Simulation/vending-simple.v
+Converted 0 1-valued FFs and 48 DC-valued FFs.
+
+setup> se sys vrf
+
+vrf> pdr -o 0
+Output 15 was asserted in frame  1 ( 1) (solved  1 out of 17 outputs).
+Output 13 was asserted in frame  2 ( 2) (solved  2 out of 17 outputs).
+Output 14 was asserted in frame  2 ( 2) (solved  3 out of 17 outputs).
+Output 16 was asserted in frame  2 ( 2) (solved  4 out of 17 outputs).
+Output  1 was asserted in frame  3 ( 3) (solved  5 out of 17 outputs).
+Output  2 was asserted in frame  4 ( 4) (solved  6 out of 17 outputs).
+Output  4 was asserted in frame  4 ( 4) (solved  7 out of 17 outputs).
+Output  5 was asserted in frame  6 ( 6) (solved  8 out of 17 outputs).
+Output  7 was asserted in frame  6 ( 6) (solved  9 out of 17 outputs).
+Output  8 was asserted in frame  7 ( 7) (solved 10 out of 17 outputs).
+Output 10 was asserted in frame  7 ( 7) (solved 11 out of 17 outputs).
+Output  6 was asserted in frame  8 ( 8) (solved 12 out of 17 outputs).
+Output  9 was asserted in frame  8 ( 8) (solved 13 out of 17 outputs).
+Output 11 was asserted in frame  8 ( 8) (solved 14 out of 17 outputs).
+Output  0 was asserted in frame  9 ( 9) (solved 15 out of 17 outputs).
+Output 12 was asserted in frame 10 (10) (solved 16 out of 17 outputs).
+Invariant F[15] : 85 clauses with 41 flops (out of 48) (cex = 0, ave = 22.82)
+Verification of invariant with 85 clauses was successful.  Time =     0.00 sec
+Properties:  All = 17. Proved = 1. Disproved = 16. Undecided = 0.   Time =     8.52 sec
+
+--- 分析 ---
+
+Output 0 = property p（assertion 信號）
+「Output 0 was asserted in frame 9」→ PDR 在第 9 個時脈找到反例，證明 p 可以為 1（即 bug 被觸發）。
+
+PDR 結果：
+  - Disproved = 16（包含 Output 0 在內的信號可以被觸發為 1）
+  - Proved = 1（某個 output 被證明永遠不為 1）
+  - 全程耗時 ≈ 8.5 秒
+
+這表示在無需撰寫任何 testbench input pattern 的情況下，
+形式驗證引擎自動窮舉所有可能輸入組合並找到了 bug。
+```
+///
+
+
+## [LN] BDDs for different Boolean functions
+
+### Try to build BDDs from different types of functions and see how they look like
+
+我用 GV 的 BDD calculator 對幾種不同類型的函數建構了 BDD，以下是實驗結果（變數順序都用 `bseto -file`）。
+
+**Adder**
+
+我寫了 8-bit 純組合加法器 `adder_8.v`（`assign sum = a + b;`），讀進 GV 後用 `bcons -all` 建構所有 PO 的 BDD。各 PO 的節點數為：
+
+| PO | 意義 | 節點數 |
+|----|------|--------|
+| 0 | sum[0] | 3 |
+| 1 | sum[1] | 6 |
+| 2 | sum[2] | 13 |
+| 3 | sum[3] | 28 |
+| 4 | sum[4] | 59 |
+| 5 | sum[5] | 122 |
+| 6 | sum[6] | 249 |
+| 7 | sum[7] | 504 |
+| 8 | cout | 758 |
+
+高位的 BDD 節點數大約是低位的兩倍，因為 carry chain 必須把所有低位的進位組合展開。
+
+**Multiplier**
+
+8-bit 乘法器 `mult_8.v`（`assign prod = a * b;`）各 PO 的節點數為：
+
+| PO | 意義 | 節點數 |
+|----|------|--------|
+| 0 | prod[0] | 3 |
+| 1 | prod[1] | 7 |
+| 2 | prod[2] | 17 |
+| 3 | prod[3] | 41 |
+| 4 | prod[4] | 101 |
+| 5 | prod[5] | 257 |
+| 6 | prod[6] | 635 |
+| 7 | prod[7] | 1645 |
+| 8 | prod[8] | 2915 |
+| 9 | prod[9] | 2870 |
+| 10–15 | prod[10]–prod[15] | 2492, 2027, 1554, 1026, 675, 453 |
+
+乘法器的 BDD 呈現先升後降的 diamond 形狀。前半段成長率約 2.3x，peak 在 prod[8]；高位因為 partial products 共享子結構而開始下降。整體來看乘法器的 BDD 比加法器大很多。
+
+**Counter**
+
+我寫了 8-bit 純組合 increment function `counter_comb_8.v`（`assign next_cnt = cnt + 8'd1;`），只有一個 8-bit 輸入。各 PO 的節點數為：
+
+| PO | 意義 | 節點數 |
+|----|------|--------|
+| 0 | next_cnt[0] | 2 |
+| 1 | next_cnt[1] | 3 |
+| 2 | next_cnt[2] | 4 |
+| 3 | next_cnt[3] | 5 |
+| 4 | next_cnt[4] | 6 |
+| 5 | next_cnt[5] | 7 |
+| 6 | next_cnt[6] | 8 |
+| 7 | next_cnt[7] | 9 |
+
+Counter 的 BDD 每位只多 1 個節點，完全是線性成長。這是因為 increment 的 carry chain 只依賴「所有更低位是否都是 1」這個單一條件，不像加法器有兩組獨立輸入的交互作用。
+
+**Random logic function**
+
+我寫了一個 8 個輸入、1 個輸出的隨機組合邏輯：
+
+```v
+assign y = (x[0] ^ x[3] ^ x[5]) & (x[1] | x[4])
+         ^ (~x[2] & x[6]) | (x[7] & x[0] & ~x[4]);
+```
+
+GV 建出的 BDD 有 **35 個節點**。作為對照，4 個輸入的版本只有 **7 個節點**。隨機邏輯的 BDD 大小取決於函數本身的結構——不像加法器或乘法器有明確的規律，每個函數的節點數差異很大。
+
+**Anything else?**
+
+我還額外測試了 4-bit 的 adder 和 multiplier 作為對照：
+
+| 函數 | PO0 | PO1 | PO2 | PO3 | PO4 | 最大 |
+|------|-----|-----|-----|-----|-----|------|
+| adder_4 | 3 | 6 | 13 | 28 | 42 | 42 |
+| mult_4 | 3 | 7 | 17 | 41 | 47 | 47 |
+| counter_4 | 2 | 3 | 4 | 5 | — | 5 |
+
+4-bit 時 adder 和 multiplier 的差距還不大，但到 8-bit 時差距就非常明顯了（adder 最大 758 vs multiplier 最大 2915）。
+
+另外，可以參考 RicBDD 專案（https://github.com/ric2k1/RicBDD）中的 `testBdd.cpp`，用 C++ 程式化地建構 BDD，不需要手動寫很長的 dofile。
+
+### Discuss the growth of the number of BDD nodes w.s.t. input sizes. What's the complexity?
+
+從上面的實驗整理出各類函數 BDD 節點數的成長趨勢：
+
+- **Adder**：每多一位，carry 的 BDD 節點數大約翻倍。在 file order 下最壞的 PO 成長率 ≈ 2.0x，所以 n-bit adder 的最大單一 PO 的 BDD 大小大約是 O(2^n)。不過如果用更好的變數順序（像 interleaved），成長可以降到線性。
+- **Multiplier**：前半段成長率 ≈ 2.3x，比加法器更快。Bryant (1991) 已證明乘法器在**任何**變數順序下的 BDD 大小至少為 2^(n/8)，所以乘法器是 BDD 指數下界的經典例子。
+- **Counter (increment)**：完全線性成長，每位只多 1 個節點。這是最 BDD-friendly 的算術函數之一。
+- **Random logic**：大小不可預測，取決於函數結構。根據 Shannon Effect，大多數 n 變數的布林函數需要 ≈ 2^n / n 個 BDD 節點，只有少數具有規則結構的函數才能被有效壓縮。
+
+做完這些實驗之後，我最大的 takeaway 是：BDD 不是萬能的。看到 multiplier 的指數成長時我真的蠻震驚的——同樣是 8-bit，加法器最多 758 節點、乘法器就飆到 2915，而且 Bryant 已經證明乘法器無論怎麼排變數都是指數級。這讓我理解為什麼後面的課程會教 SAT-based 的方法——因為 BDD 在某些結構上就是會爆，需要其他工具來補。另一方面，counter 的完美線性成長讓我看到 BDD 在適合的函數上可以多有效率，關鍵就在於函數本身有沒有可以被 BDD 利用的規律結構。
+
+/// collapse-code  
+```txt title="GV BDD 建構流程範例"
+$ cd gv
+
+# 建構 8-bit adder 的 BDD
+$ printf 'cirread -v adder_8.v
+bseto -file
+bcons -all
+brep 84
+brep 85
+...
+brep 92
+q -f
+' | ./gv
+# 節點數：3, 6, 13, 28, 59, 122, 249, 504, 758
+
+# 建構 8-bit multiplier 的 BDD
+$ printf 'cirread -v mult_8.v
+bseto -file
+bcons -all
+brep 480
+...
+brep 495
+q -f
+' | ./gv
+# 節點數：3, 7, 17, 41, 101, 257, 635, 1645, 2915, 2870, 2492, 2027, 1554, 1026, 675, 453
+
+# 建構 8-bit counter 的 BDD
+$ printf 'cirread -v counter_comb_8.v
+bseto -file
+bcons -all
+brep 34 ... brep 41
+q -f
+' | ./gv
+# 節點數：2, 3, 4, 5, 6, 7, 8, 9
+```
+///
+
+
+## [LN] The worst-case size of BDDs
+
+### Before reading the referenced paper below, how do you compute/estimate the worst-case size of BDDs for any arbitrary functions?
+
+我先自己想了一下。一個 n 變數的布林函數的 truth table 有 2^n 列。不化簡的完全 BDD（UOBDD）就是一棵完全二元樹，有 2^(n+1) − 1 個節點。ROBDD 透過刪除對稱節點和合併同構子樹可以壓縮，但最壞的情況就是函數幾乎沒有對稱性、也沒有可合併的子樹。
+
+用 Shannon counting argument 可以粗略估計下界：n 變數的布林函數共有 2^(2^n) 個，但最多 m 個節點的 ROBDD 個數遠小於此。如果 m 太小就不可能表示所有函數。所以必然存在需要很大 BDD 的函數。粗略來說，worst-case 的下界大約是 2^n / n。
+
+直覺上我覺得 worst-case 不會到 UOBDD 的全部大小，因為至少 terminal node 可以共用（所有 ⊤ 和 ⊥ 各只需一個），而且深層的子樹很可能出現重複。但確切的公式需要更仔細的分析。
+
+### Summarize the paper: what is the worst-case BDD size and how to derive it. Please highlight some interesting points from the paper
+
+論文是 Jim Newton 與 Didier Verna 的 "A Theoretical and Numerical Analysis of the Worst-Case Size of Reduced Ordered Binary Decision Diagrams"（2018）。
+
+**推導方法**：作者觀察到 worst-case ROBDD 呈現菱形（diamond）形狀。從根節點往下看，每一層的節點數以 2^i 指數成長（第 i 層最多 2^(i-1) 個節點）。從最底層往上看，每一層可容納的不同節點數受限於下一層節點數 nR 的組合：C(nR, 2) + nR（因為每個節點有兩個子指標，不同的子指標配對數就是 combination 加上兩個指標相同的情況）。最寬處就是這兩種成長率相遇的地方。
+
+**三個化簡規則**：
+
+1. **Terminal rule**：所有 ⊤/⊥ 葉節點共用單一物件
+2. **Deletion rule**：若某節點的正負子節點相同（對稱節點），刪除它
+3. **Merging rule**：若兩個節點的正負子節點都相同（同構節點），合併
+
+**Worst-case 大小公式**：第 i 層的最大節點數為 min(2^(i-1), nR_i)，其中 nR_i 從底部往上遞推計算。論文導出精確的遞推公式來算出 |ROBDD_n|。
+
+**殘餘壓縮比**（ρ_n = |ROBDD_n| / |UOBDD_n|）隨 n 增大趨近於 0，代表即使最壞情況下 ROBDD 相對 UOBDD 仍有顯著壓縮。
+
+**有趣的觀點**：
+
+- 1 到 4 變數的 worst-case 節點數分別是 3、5、8、11。
+- 論文提供了一個直接建構 worst-case ROBDD 的演算法，不需窮舉。
+- **Shannon Effect**：對大多數隨機布林函數，ROBDD 大小非常接近 worst-case 大小。平均與最壞的差距隨 n 增大可忽略。也就是說「大部分函數都接近最壞」。
+- 標準差的成長看起來比線性快，但相對於平均值來說，集中度越來越高。
+
+### Design some experiments to verify the statements of this paper
+
+我設計了幾個實驗來驗證論文的結論：
+
+**實驗 1：比較實際 BDD 大小與 UOBDD 大小**
+
+| 電路 | n (變數數) | 最大 PO BDD 節點數 | UOBDD 大小 (2^(n+1)−1) | 壓縮比 |
+|------|-----------|-------------------|----------------------|--------|
+| adder_4 | 8 | 42 | 511 | 8.2% |
+| adder_8 | 16 | 758 | 131071 | 0.58% |
+| mult_4 | 8 | 47 | 511 | 9.2% |
+| mult_8 | 16 | 2915 | 131071 | 2.2% |
+| counter_8 | 8 | 9 | 511 | 1.8% |
+
+隨著 n 增加，壓縮比確實急劇下降，和論文所述的 ρ_n → 0 一致。
+
+**實驗 2：同一類電路不同位寬的成長**
+
+| 位寬 | adder 最大 PO | mult 最大 PO |
+|------|-------------|-------------|
+| 4-bit | 42 | 47 |
+| 8-bit | 758 | 2915 |
+
+Adder 從 42 到 758（≈ 18x），multiplier 從 47 到 2915（≈ 62x）。乘法器的成長速度遠超加法器，符合 Bryant 的指數下界理論。
+
+**實驗 3：對比 worst-case 理論值**
+
+論文說 4 變數的 worst-case 是 11 個節點。我的 4-bit counter 只要 5 個、random logic (4 input) 是 7 個、4-bit adder 最大 PO 是 42 但那是 8 個變數。這些都遠低於 worst case，因為真實電路通常具有結構規律性。要達到 worst case 需要特別設計的函數——論文中也提供了構造方法。
+
+我覺得這篇論文最讓我印象深刻的一點是 Shannon Effect：「大部分的布林函數其實都接近 worst case」。這聽起來很悲觀，但好消息是——真實電路不是隨機函數。真實電路是人類為了特定目的設計的，天然帶有結構（對稱性、locality、重複的子結構），所以實際的 BDD 通常遠小於理論 worst case。這讓我理解為什麼 BDD 在實務上仍然有用——不是因為 worst case 小（它其實很大），而是因為「我們在意的函數」通常不是 worst case。
+
+延伸來想：如果要評估一個新的 DD 技術好不好用，不應該只看 worst-case complexity，更應該看它在「真實電路 benchmark」上的表現。這也是為什麼 ISCAS benchmark 之類的測試套件在 EDA 研究中這麼重要。

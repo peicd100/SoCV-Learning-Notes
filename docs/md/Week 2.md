@@ -1,13 +1,32 @@
 # Week 2
 ## [LN] How to verify the correctness of your (RTL) design?
 ### How do you know your implementation is correct?
-採用 simulation-based verification：先以 FSM 實作販賣機 RTL，再用 testbench 對設計施加不同輸入，觀察輸出是否符合規格。
 
-RTL 的核心策略是：只有在 SERVICE_ON 且 itemTypeIn != ITEM_NONE 時接受請求；若金額不足或找不開，則不出貨並退回輸入硬幣；reset 後每種硬幣初始庫存為 2。
+我採用 simulation-based verification 來驗證我的販賣機 RTL。整個過程分成三步：先根據 spec 寫出 RTL design，再寫 testbench 去驅動它，最後觀察 simulation 結果是否符合規格。
 
-在找零實作上，採用 greedy，也就是依序優先使用較大面額硬幣（50 → 10 → 5 → 1）來找零。
+**設計決策過程**
 
-Testbench 目前採用 directed tests，針對 reset、成功購買、退幣、找零、BUSY/OFF 狀態插入 request，以及庫存上限 7 等關鍵情況逐一驗證，最後統計 PASS、FAIL 與 PASS RATE。
+拿到 spec 之後，我先把販賣機的行為拆解成一個 3-state FSM：`SERVICE_ON`（等待 request）→ `SERVICE_BUSY`（計算交易）→ `SERVICE_OFF`（展示結果）→ 回到 `SERVICE_ON`。我選擇把所有找零邏輯放在 `SERVICE_BUSY` 的組合邏輯裡一次算完，而不是像 GV 附的範例 `vending-simple.v` 那樣在 `SERVICE_BUSY` 裡用多個 cycle 逐幣找零。一次算完的好處是不需要追蹤中間狀態，邏輯比較簡單、不容易出錯。
+
+找零策略我選了 greedy：依序優先使用較大面額硬幣（50 → 10 → 5 → 1）。每個面額用一個 bounded for-loop 嘗試扣款，如果扣到零錢用完或餘額不夠就換下一個面額。如果最後 remainder 不是 0（表示找不開），就全額退幣、不出貨。
+
+另外一個重要的設計決策是**庫存上限的飽和加法**。每種硬幣的庫存用 3-bit 存（最大 7），投入硬幣時要把客戶的硬幣加進去，但不能超過 7。我用了一個 `sat_add3` function 做飽和加法，避免 overflow。
+
+**遇到的困難**
+
+最棘手的部分是找零邏輯的 corner case。例如：客戶投了足夠的錢，但機器裡的零錢組合剛好找不開（比如要找 8 塊但只有 50 和 10 的硬幣）。我一開始沒考慮到這種情況，testbench 跑下去才發現 bug。修正方式是在找零循環結束後檢查 `remainder`，不為零就退幣。
+
+另一個踩坑的地方是 `always @(*)` 裡的 latch inference。我一開始忘了在某個分支寫 `serviceTypeOut = state;`，Vivado 警告了 inferred latch。後來我把 `serviceTypeOut` 改成用獨立的 combinational always block 直接接 state，就解決了。
+
+**Testbench 策略**
+
+我寫了 18 個 directed test cases，涵蓋：reset 初始化、精確付款、金額不足退幣、找不開退幣、正確找零、BUSY/OFF 期間插入 request 應被忽略、庫存飽和上限等。最後統計 PASS/FAIL 和 PASS RATE，全部 18/18 通過。
+
+**Insight**
+
+做完之後我深刻體會到 directed test 的局限性——我寫了 18 個 test case 覺得「應該夠了」，但其實不可能覆蓋所有輸入組合。一個完整的測試應該要考慮的空間是：4 種硬幣 x 每種 0-3 枚 x 3 種商品 x 各種庫存狀態，排列組合的數量遠超過手動能寫的。這讓我理解為什麼需要 constrained random verification（Week 1 講到的 CRV）和 formal verification（後面幾週會學的 BDD/SAT）。手動寫 directed test 只是一個起點，不是終點。
+
+另外，我後來拿同樣的 spec 去讓 Cursor 生成 Verilog code，發現 AI 生出來的版本跟我自己寫的架構差異蠻大的——它用了 `integer` 型別做中間計算，coding style 也比較偏 behavioral。這讓我想到：AI 生成的 code 看起來能跑，但你不知道它的 quality 好不好、有沒有隱藏的 bug，所以「驗證」這件事變得更重要了。
 
 
 /// collapse-code  

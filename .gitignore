@@ -63,3 +63,14 @@ Thumbs.db
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 !*.code-workspace
+
+# gv
+gv/
+
+# AGENTS.md 專案維護檔（本機用，不上傳）
+AGENTS.md
+README_PEICD100.md
+專案規格書.md
+
+# 教材
+教材/
