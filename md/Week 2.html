@@ -3217,59 +3217,96 @@ is now available!
 </code></pre></div>
 <div class="code-footer"><label class="expand" for="__collapse1" tabindex="0" title="expand"></label><label class="collapse" for="__collapse1" tabindex="0" title="collapse"></label></div>
 </div>
-<div class="collapse-code"><input checked="checked" id="__collapse2" name="__collapse2" type="checkbox" /><h1 id="txt-titleconsole">```txt title="console"<a class="headerlink" href="#txt-titleconsole" title="Permanent link"></a></h1>
-<h1 id="start-vivado-simulation">START VIVADO SIMULATION<a class="headerlink" href="#start-vivado-simulation" title="Permanent link"></a></h1>
-<hr />
-<p>CASE: Reset should put machine into SERVICE_ON<br />
-ACTUAL: serviceTypeOut=0<br />
-EXPECT: serviceTypeOut=0 (SERVICE_ON)<br />
-[PASS] Reset should put machine into SERVICE_ON<br />
-CASE: Reset should initialize inventory to 2 each<br />
-ACTUAL INV : (50:2, 10:2, 5:2, 1:2)<br />
-EXPECT INV : (50:2, 10:2, 5:2, 1:2)<br />
-[PASS] Reset should initialize inventory to 2 each</p>
-<hr />
-<p>CASE: ITEM_NONE should keep machine idle<br />
-[PASS] ITEM_NONE should keep machine idle</p>
-<hr />
-<p>CASE: ITEM_A exact pay 8 -&gt; vend, no change<br />
-ACTUAL: item=1, change=(50:0, 10:0, 5:0, 1:0)<br />
-EXPECT: item=1, change=(50:0, 10:0, 5:0, 1:0)<br />
-[PASS] ITEM_A exact pay 8 -&gt; vend, no change<br />
-CASE: After ITEM_A exact pay, inventory should update<br />
-ACTUAL INV : (50:2, 10:2, 5:3, 1:5)<br />
-EXPECT INV : (50:2, 10:2, 5:3, 1:5)<br />
-[PASS] After ITEM_A exact pay, inventory should update</p>
-<hr />
-<p>CASE: ITEM_B pay 10 -&gt; not enough, refund 10<br />
-ACTUAL: item=0, change=(50:0, 10:1, 5:0, 1:0)<br />
-EXPECT: item=0, change=(50:0, 10:1, 5:0, 1:0)<br />
-[PASS] ITEM_B pay 10 -&gt; not enough, refund 10<br />
-CASE: Refund case should not change inventory<br />
-ACTUAL INV : (50:2, 10:2, 5:2, 1:2)<br />
-EXPECT INV : (50:2, 10:2, 5:2, 1:2)<br />
-[PASS] Refund case should not change inventory</p>
-<hr />
-<p>CASE: ITEM_C pay 30 -&gt; cannot make exact change, refund<br />
-ACTUAL: item=0, change=(50:0, 10:3, 5:0, 1:0)<br />
-EXPECT: item=0, change=(50:0, 10:3, 5:0, 1:0)<br />
-[PASS] ITEM_C pay 30 -&gt; cannot make exact change, refund</p>
-<hr />
-<p>CASE: ITEM_C pay 23 -&gt; vend and change 1x1<br />
-ACTUAL: item=3, change=(50:0, 10:0, 5:0, 1:1)<br />
-EXPECT: item=3, change=(50:0, 10:0, 5:0, 1:1)<br />
-[PASS] ITEM_C pay 23 -&gt; vend and change 1x1</p>
-<hr />
-<p>CASE: ITEM_B pay 20 -&gt; vend and change 1x5<br />
-ACTUAL: item=2, change=(50:0, 10:0, 5:1, 1:0)<br />
-EXPECT: item=2, change=(50:0, 10:0, 5:1, 1:0)<br />
-[PASS] ITEM_B pay 20 -&gt; vend and change 1x5</p>
-<hr />
-<p>CASE: Request during BUSY should be ignored<br />
-ACTUAL current OFF result: item=1, change=(50:0,10:0,5:0,1:0)<br />
-[PASS] Request during BUSY should be ignored</p>
-<hr />
-<p>CASE: No extra transaction shou</p>
+<div class="collapse-code"><input checked="checked" id="__collapse2" name="__collapse2" type="checkbox" /><div class="highlight"><span class="filename">console</span><pre><span></span><code>============================================================
+START VIVADO SIMULATION
+============================================================
+------------------------------------------------------------
+CASE: Reset should put machine into SERVICE_ON
+ACTUAL: serviceTypeOut=0
+EXPECT: serviceTypeOut=0 (SERVICE_ON)
+[PASS] Reset should put machine into SERVICE_ON
+CASE: Reset should initialize inventory to 2 each
+ACTUAL INV : (50:2, 10:2, 5:2, 1:2)
+EXPECT INV : (50:2, 10:2, 5:2, 1:2)
+[PASS] Reset should initialize inventory to 2 each
+------------------------------------------------------------
+CASE: ITEM_NONE should keep machine idle
+[PASS] ITEM_NONE should keep machine idle
+------------------------------------------------------------
+CASE: ITEM_A exact pay 8 -&gt; vend, no change
+ACTUAL: item=1, change=(50:0, 10:0, 5:0, 1:0)
+EXPECT: item=1, change=(50:0, 10:0, 5:0, 1:0)
+[PASS] ITEM_A exact pay 8 -&gt; vend, no change
+CASE: After ITEM_A exact pay, inventory should update
+ACTUAL INV : (50:2, 10:2, 5:3, 1:5)
+EXPECT INV : (50:2, 10:2, 5:3, 1:5)
+[PASS] After ITEM_A exact pay, inventory should update
+------------------------------------------------------------
+CASE: ITEM_B pay 10 -&gt; not enough, refund 10
+ACTUAL: item=0, change=(50:0, 10:1, 5:0, 1:0)
+EXPECT: item=0, change=(50:0, 10:1, 5:0, 1:0)
+[PASS] ITEM_B pay 10 -&gt; not enough, refund 10
+CASE: Refund case should not change inventory
+ACTUAL INV : (50:2, 10:2, 5:2, 1:2)
+EXPECT INV : (50:2, 10:2, 5:2, 1:2)
+[PASS] Refund case should not change inventory
+------------------------------------------------------------
+CASE: ITEM_C pay 30 -&gt; cannot make exact change, refund
+ACTUAL: item=0, change=(50:0, 10:3, 5:0, 1:0)
+EXPECT: item=0, change=(50:0, 10:3, 5:0, 1:0)
+[PASS] ITEM_C pay 30 -&gt; cannot make exact change, refund
+------------------------------------------------------------
+CASE: ITEM_C pay 23 -&gt; vend and change 1x1
+ACTUAL: item=3, change=(50:0, 10:0, 5:0, 1:1)
+EXPECT: item=3, change=(50:0, 10:0, 5:0, 1:1)
+[PASS] ITEM_C pay 23 -&gt; vend and change 1x1
+------------------------------------------------------------
+CASE: ITEM_B pay 20 -&gt; vend and change 1x5
+ACTUAL: item=2, change=(50:0, 10:0, 5:1, 1:0)
+EXPECT: item=2, change=(50:0, 10:0, 5:1, 1:0)
+[PASS] ITEM_B pay 20 -&gt; vend and change 1x5
+------------------------------------------------------------
+CASE: Request during BUSY should be ignored
+ACTUAL current OFF result: item=1, change=(50:0,10:0,5:0,1:0)
+[PASS] Request during BUSY should be ignored
+------------------------------------------------------------
+CASE: No extra transaction should happen after BUSY injection
+[PASS] No extra transaction should happen after BUSY injection
+------------------------------------------------------------
+CASE: Request during OFF should be ignored
+ACTUAL current OFF result: item=1, change=(50:0,10:0,5:0,1:0)
+[PASS] Request during OFF should be ignored
+------------------------------------------------------------
+CASE: No extra transaction should happen after OFF injection
+[PASS] No extra transaction should happen after OFF injection
+------------------------------------------------------------
+CASE: Capacity saturation case should still vend ITEM_C with exact pay 22
+ACTUAL: item=3, change=(50:0, 10:0, 5:0, 1:0)
+EXPECT: item=3, change=(50:0, 10:0, 5:0, 1:0)
+[PASS] Capacity saturation case should still vend ITEM_C with exact pay 22
+CASE: inv10 should saturate at 7, not become 8
+ACTUAL INV : (50:2, 10:7, 5:2, 1:4)
+EXPECT INV : (50:2, 10:7, 5:2, 1:4)
+[PASS] inv10 should saturate at 7, not become 8
+------------------------------------------------------------
+CASE: No 5-dollar coin available -&gt; ITEM_B pay20 should refund
+ACTUAL: item=0, change=(50:0, 10:2, 5:0, 1:0)
+EXPECT: item=0, change=(50:0, 10:2, 5:0, 1:0)
+[PASS] No 5-dollar coin available -&gt; ITEM_B pay20 should refund
+------------------------------------------------------------
+CASE: ITEM_A pay 3 only -&gt; refund all ones
+ACTUAL: item=0, change=(50:0, 10:0, 5:0, 1:3)
+EXPECT: item=0, change=(50:0, 10:0, 5:0, 1:3)
+[PASS] ITEM_A pay 3 only -&gt; refund all ones
+============================================================
+TOTAL CASES = 18
+PASS        = 18
+FAIL        = 0
+PASS RATE   = 100.00%
+FINAL RESULT: ALL TESTS PASSED
+============================================================
+</code></pre></div>
+<div class="code-footer"><label class="expand" for="__collapse2" tabindex="0" title="expand"></label><label class="collapse" for="__collapse2" tabindex="0" title="collapse"></label></div>
 </div>
 
 
