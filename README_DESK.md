@@ -12,7 +12,7 @@ activate mkdocs_desk
 mkdocs serve 
 
 ```
-## 每次寫完
+## 每次寫完中完成圖中的[LN]。
 ```
 activate mkdocs_desk
 mkdocs gh-deploy
