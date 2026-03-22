@@ -7,9 +7,20 @@
 
 ---
 
+把這資料夾視為專案，要維護AGENTS.md提到的檔案。
+講義中03/11 class ends here的意思是03/11 class ends here上到這裡，幫我在Week 3.md中完成的所有03/11 class ends here前面，Week 2.md還沒寫過的LN。然後03/18 class ends here是第四周，幫我在Week 4.md完成03/18 class ends here前面，第三週後面的LN
+
+
+我把GV移動到/media/sf_SoCV_Learning_Notes/gv了，你換到/media/sf_SoCV_Learning_Notes/gv用GV。
+
+
+
+
 然後還要對於非LN的部分寫學習筆記，把你覺得在課程中很重要的部分寫學習筆記，
 
 
 AGENTS.md要求維護的東西都不要傳到git，忽略掉
 
 幫我把剛剛要求的你事情都記到README_PEICD100.md，我之後會要求你幫我寫LN，就是要你照現在這個規格
+
+
