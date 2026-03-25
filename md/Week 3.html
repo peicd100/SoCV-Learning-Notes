@@ -1418,7 +1418,7 @@
   }
 
   function voiceLabel(v){
-    return `${v.lang} — ${v.name}`;
+    return `${v.lang} / ${v.name}`;
   }
 
   function syncVoiceDropdowns(){
@@ -2802,7 +2802,7 @@ is now available!
 <p>這些屬於 invariant / safety property（AG p），只需在每個 clock edge 檢查一個布林條件是否成立，語法上只是一個 <code>always @(posedge clk)</code> 配 <code>if (!cond) $error(...)</code> 就能完成。</p>
 <p>比較困難的是跨時脈的 protocol assertions。例如我想確認「從 SERVICE_ON 接受 request 到 SERVICE_OFF 輸出結果的過程中，找零金額 + 商品價格 = 投入金額」，因為投入金額在 ON → BUSY 的瞬間被 latch 進內部暫存器，必須在不同狀態下追蹤同一組數值才能驗證守恆關係。這類 assertions 需要對設計的時序行為有深入理解。</p>
 <p>在 GV 工具中，assertions 的做法是將要驗證的條件 promote 成一個 primary output（例如 <code>output p</code>），當 <code>p = 1</code> 時代表違反了 property。之後可以用 PDR、BMC、BDD-based model checking 等形式驗證引擎對該 output 做窮舉檢查。這種做法的好處是不需要撰寫 testbench 的輸入激勵，形式驗證引擎會自動搜索所有可能的輸入組合。</p>
-<p>我覺得 assertion 最大的價值不只是「找 bug」，而是它迫使我把「什麼是正確行為」這件事用精確的邏輯寫下來。寫 assertion 的過程其實就是在重新審視 spec——哪些不變量應該永遠成立？哪些狀態轉移是合法的？這個思考過程本身就能揪出很多「我以為我懂但其實沒想清楚」的地方。</p>
+<p>我覺得 assertion 最大的價值不只是「找 bug」，而是它迫使我把「什麼是正確行為」這件事用精確的邏輯寫下來。寫 assertion 的過程其實就是在重新審視 spec：哪些不變量應該永遠成立？哪些狀態轉移是合法的？這個思考過程本身就能揪出很多「我以為我懂但其實沒想清楚」的地方。</p>
 <h3 id="did-the-assertions-help-reveal-any-bugs-if-so-what-kind-of-bugs">Did the assertions help reveal any bugs? If so, what kind of bugs?<a class="headerlink" href="#did-the-assertions-help-reveal-any-bugs-if-so-what-kind-of-bugs" title="Permanent link"></a></h3>
 <p>在我 Week 2 自己寫的販賣機設計上，所有 assertions 均通過，因為那個設計在 testbench 階段就已經充分驗證過了。</p>
 <p>不過我拿 GV 附的範例設計 <code>vending-simple.v</code> 來試，assertions 確實揭露了一個隱藏的 bug。那個設計在模組內部定義了一個 property output：</p>
@@ -2816,9 +2816,9 @@ is now available!
 <div class="highlight"><pre><span></span><code>Output  0 was asserted in frame  9
 </code></pre></div>
 <p>PDR 在第 9 個時脈框架就找到了一組反例。</p>
-<p>根源分析：bug 位於 <code>vending-simple.v</code> 的找零邏輯中的 <code>NTD_1</code> 分支。當機器正在用 $1 硬幣找零、但庫存中的 $1 硬幣已用盡（<code>countNTD_1 == 3'd0</code>）時，設計錯誤地直接跳到 <code>SERVICE_OFF</code> 並將所有 coinOut 歸零、itemTypeOut 設為 <code>ITEM_NONE</code>。這導致使用者投入的錢既沒有買到商品、也沒有被正確退還——零錢輸出為 0，但投入金額 inputValue 非零，assertion 因此觸發。</p>
+<p>根源分析：bug 位於 <code>vending-simple.v</code> 的找零邏輯中的 <code>NTD_1</code> 分支。當機器正在用 $1 硬幣找零、但庫存中的 $1 硬幣已用盡（<code>countNTD_1 == 3'd0</code>）時，設計錯誤地直接跳到 <code>SERVICE_OFF</code> 並將所有 coinOut 歸零、itemTypeOut 設為 <code>ITEM_NONE</code>。這導致使用者投入的錢既沒有買到商品、也沒有被正確退還；零錢輸出為 0，但投入金額 inputValue 非零，assertion 因此觸發。</p>
 <p>這類 bug 在 directed simulation 中很難被發現，因為它只在特定的庫存狀態與投幣組合下才會觸發。形式驗證的窮舉搜索則可以系統性地找到。</p>
-<p>這個結果讓我很震撼——PDR 只花了 8.5 秒就找到了一個我用 directed test 可能永遠都不會去測的 corner case。而且它不需要我去想「應該測什麼輸入」，它自己會搜索整個輸入空間。這讓我深刻理解了 Week 1 講的「為什麼不能只靠 simulation」——不管寫多少 test case，都有遺漏的可能，但形式驗證是數學上的窮舉。</p>
+<p>這個結果讓我很震撼：PDR 只花了 8.5 秒就找到了一個我用 directed test 可能永遠都不會去測的 corner case。而且它不需要我去想「應該測什麼輸入」，它自己會搜索整個輸入空間。這讓我深刻理解了 Week 1 講的「為什麼不能只靠 simulation」：不管寫多少 test case，都有遺漏的可能，但形式驗證是數學上的窮舉。</p>
 <h3 id="if-you-found-bugs-revise-your-rtl-design-and-repeat-the-verification-process">If you found bugs, revise your RTL design and repeat the verification process.<a class="headerlink" href="#if-you-found-bugs-revise-your-rtl-design-and-repeat-the-verification-process" title="Permanent link"></a></h3>
 <p>上述 <code>vending-simple.v</code> 的 bug 位於以下片段（第 222–235 行附近）：</p>
 <div class="highlight"><pre><span></span><code><span class="no">`NTD_1</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">begin</span>
@@ -2868,7 +2868,7 @@ is now available!
 <span class="w">        </span><span class="n">assert_fail</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0</span><span class="p">;</span>
 <span class="w">    </span><span class="k">end</span>
 
-<span class="w">    </span><span class="c1">// A1: 狀態合法性 — state 永遠不為 2&#39;b11</span>
+<span class="w">    </span><span class="c1">// A1: 狀態合法性，state 永遠不為 2&#39;b11</span>
 <span class="w">    </span><span class="k">always</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
 <span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">reset</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
 <span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">state</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mh">2</span><span class="mb">&#39;b11</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
@@ -2880,7 +2880,7 @@ is now available!
 <span class="w">        </span><span class="k">end</span>
 <span class="w">    </span><span class="k">end</span>
 
-<span class="w">    </span><span class="c1">// A2: 庫存上限 — 每種硬幣不超過 7</span>
+<span class="w">    </span><span class="c1">// A2: 庫存上限，每種硬幣不超過 7</span>
 <span class="w">    </span><span class="k">always</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
 <span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">reset</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
 <span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">inv50</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mh">3</span><span class="mi">&#39;d7</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">inv10</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mh">3</span><span class="mi">&#39;d7</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">inv5</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mh">3</span><span class="mi">&#39;d7</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">inv1</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mh">3</span><span class="mi">&#39;d7</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
@@ -2906,7 +2906,7 @@ is now available!
 <span class="w">        </span><span class="k">end</span>
 <span class="w">    </span><span class="k">end</span>
 
-<span class="w">    </span><span class="c1">// A4: 狀態轉移合法性 — SERVICE_ON 不會直接跳到 SERVICE_OFF</span>
+<span class="w">    </span><span class="c1">// A4: 狀態轉移合法性，SERVICE_ON 不會直接跳到 SERVICE_OFF</span>
 <span class="w">    </span><span class="kt">reg</span><span class="w"> </span><span class="p">[</span><span class="mh">1</span><span class="o">:</span><span class="mh">0</span><span class="p">]</span><span class="w"> </span><span class="n">prev_state</span><span class="p">;</span>
 <span class="w">    </span><span class="k">always</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="w"> </span><span class="k">or</span><span class="w"> </span><span class="k">posedge</span><span class="w"> </span><span class="n">reset</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
 <span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">reset</span><span class="p">)</span>
@@ -3288,7 +3288,7 @@ PDR 結果：
 <div class="highlight"><pre><span></span><code><span class="k">assign</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mh">0</span><span class="p">]</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mh">3</span><span class="p">]</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mh">5</span><span class="p">])</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mh">1</span><span class="p">]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mh">4</span><span class="p">])</span>
 <span class="w">         </span><span class="o">^</span><span class="w"> </span><span class="p">(</span><span class="o">~</span><span class="n">x</span><span class="p">[</span><span class="mh">2</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mh">6</span><span class="p">])</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mh">7</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mh">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="o">~</span><span class="n">x</span><span class="p">[</span><span class="mh">4</span><span class="p">]);</span>
 </code></pre></div>
-<p>GV 建出的 BDD 有 <strong>35 個節點</strong>。作為對照，4 個輸入的版本只有 <strong>7 個節點</strong>。隨機邏輯的 BDD 大小取決於函數本身的結構——不像加法器或乘法器有明確的規律，每個函數的節點數差異很大。</p>
+<p>GV 建出的 BDD 有 <strong>35 個節點</strong>。作為對照，4 個輸入的版本只有 <strong>7 個節點</strong>。隨機邏輯的 BDD 大小取決於函數本身的結構，不像加法器或乘法器有明確的規律，每個函數的節點數差異很大。</p>
 <p><strong>Anything else?</strong></p>
 <p>我還額外測試了 4-bit 的 adder 和 multiplier 作為對照：</p>
 <table>
@@ -3328,7 +3328,7 @@ PDR 結果：
 <td>3</td>
 <td>4</td>
 <td>5</td>
-<td>—</td>
+<td>無</td>
 <td>5</td>
 </tr>
 </tbody>
@@ -3343,7 +3343,7 @@ PDR 結果：
 <li><strong>Counter (increment)</strong>：完全線性成長，每位只多 1 個節點。這是最 BDD-friendly 的算術函數之一。</li>
 <li><strong>Random logic</strong>：大小不可預測，取決於函數結構。根據 Shannon Effect，大多數 n 變數的布林函數需要 ≈ 2^n / n 個 BDD 節點，只有少數具有規則結構的函數才能被有效壓縮。</li>
 </ul>
-<p>做完這些實驗之後，我最大的 takeaway 是：BDD 不是萬能的。看到 multiplier 的指數成長時我真的蠻震驚的——同樣是 8-bit，加法器最多 758 節點、乘法器就飆到 2915，而且 Bryant 已經證明乘法器無論怎麼排變數都是指數級。這讓我理解為什麼後面的課程會教 SAT-based 的方法——因為 BDD 在某些結構上就是會爆，需要其他工具來補。另一方面，counter 的完美線性成長讓我看到 BDD 在適合的函數上可以多有效率，關鍵就在於函數本身有沒有可以被 BDD 利用的規律結構。</p>
+<p>做完這些實驗之後，我最大的 takeaway 是：BDD 不是萬能的。看到 multiplier 的指數成長時我真的蠻震驚的：同樣是 8-bit，加法器最多 758 節點、乘法器就飆到 2915，而且 Bryant 已經證明乘法器無論怎麼排變數都是指數級。這讓我理解為什麼後面的課程會教 SAT-based 的方法，因為 BDD 在某些結構上就是會爆，需要其他工具來補。另一方面，counter 的完美線性成長讓我看到 BDD 在適合的函數上可以多有效率，關鍵就在於函數本身有沒有可以被 BDD 利用的規律結構。</p>
 <div class="collapse-code"><input checked="checked" id="__collapse3" name="__collapse3" type="checkbox" /><div class="highlight"><span class="filename">GV BDD 建構流程範例</span><pre><span></span><code>$ cd gv
 
 # 建構 8-bit adder 的 BDD
@@ -3479,8 +3479,8 @@ q -f
 </table>
 <p>Adder 從 42 到 758（≈ 18x），multiplier 從 47 到 2915（≈ 62x）。乘法器的成長速度遠超加法器，符合 Bryant 的指數下界理論。</p>
 <p><strong>實驗 3：對比 worst-case 理論值</strong></p>
-<p>論文說 4 變數的 worst-case 是 11 個節點。我的 4-bit counter 只要 5 個、random logic (4 input) 是 7 個、4-bit adder 最大 PO 是 42 但那是 8 個變數。這些都遠低於 worst case，因為真實電路通常具有結構規律性。要達到 worst case 需要特別設計的函數——論文中也提供了構造方法。</p>
-<p>我覺得這篇論文最讓我印象深刻的一點是 Shannon Effect：「大部分的布林函數其實都接近 worst case」。這聽起來很悲觀，但好消息是——真實電路不是隨機函數。真實電路是人類為了特定目的設計的，天然帶有結構（對稱性、locality、重複的子結構），所以實際的 BDD 通常遠小於理論 worst case。這讓我理解為什麼 BDD 在實務上仍然有用——不是因為 worst case 小（它其實很大），而是因為「我們在意的函數」通常不是 worst case。</p>
+<p>論文說 4 變數的 worst-case 是 11 個節點。我的 4-bit counter 只要 5 個、random logic (4 input) 是 7 個、4-bit adder 最大 PO 是 42 但那是 8 個變數。這些都遠低於 worst case，因為真實電路通常具有結構規律性。要達到 worst case 需要特別設計的函數，論文中也提供了構造方法。</p>
+<p>我覺得這篇論文最讓我印象深刻的一點是 Shannon Effect：「大部分的布林函數其實都接近 worst case」。這聽起來很悲觀，但好消息是：真實電路不是隨機函數。真實電路是人類為了特定目的設計的，天然帶有結構（對稱性、locality、重複的子結構），所以實際的 BDD 通常遠小於理論 worst case。這讓我理解為什麼 BDD 在實務上仍然有用：不是因為 worst case 小（它其實很大），而是因為「我們在意的函數」通常不是 worst case。</p>
 <p>延伸來想：如果要評估一個新的 DD 技術好不好用，不應該只看 worst-case complexity，更應該看它在「真實電路 benchmark」上的表現。這也是為什麼 ISCAS benchmark 之類的測試套件在 EDA 研究中這麼重要。</p>
 
 

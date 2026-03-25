@@ -1418,7 +1418,7 @@
   }
 
   function voiceLabel(v){
-    return `${v.lang} — ${v.name}`;
+    return `${v.lang} / ${v.name}`;
   }
 
   function syncVoiceDropdowns(){
@@ -2581,8 +2581,8 @@ is now available!
 <p><strong>Testbench 策略</strong></p>
 <p>我寫了 18 個 directed test cases，涵蓋：reset 初始化、精確付款、金額不足退幣、找不開退幣、正確找零、BUSY/OFF 期間插入 request 應被忽略、庫存飽和上限等。最後統計 PASS/FAIL 和 PASS RATE，全部 18/18 通過。</p>
 <p><strong>Insight</strong></p>
-<p>做完之後我深刻體會到 directed test 的局限性——我寫了 18 個 test case 覺得「應該夠了」，但其實不可能覆蓋所有輸入組合。一個完整的測試應該要考慮的空間是：4 種硬幣 x 每種 0-3 枚 x 3 種商品 x 各種庫存狀態，排列組合的數量遠超過手動能寫的。這讓我理解為什麼需要 constrained random verification（Week 1 講到的 CRV）和 formal verification（後面幾週會學的 BDD/SAT）。手動寫 directed test 只是一個起點，不是終點。</p>
-<p>另外，我後來拿同樣的 spec 去讓 Cursor 生成 Verilog code，發現 AI 生出來的版本跟我自己寫的架構差異蠻大的——它用了 <code>integer</code> 型別做中間計算，coding style 也比較偏 behavioral。這讓我想到：AI 生成的 code 看起來能跑，但你不知道它的 quality 好不好、有沒有隱藏的 bug，所以「驗證」這件事變得更重要了。</p>
+<p>做完之後我深刻體會到 directed test 的局限性：我寫了 18 個 test case 覺得「應該夠了」，但其實不可能覆蓋所有輸入組合。一個完整的測試應該要考慮的空間是：4 種硬幣 x 每種 0-3 枚 x 3 種商品 x 各種庫存狀態，排列組合的數量遠超過手動能寫的。這讓我理解為什麼需要 constrained random verification（Week 1 講到的 CRV）和 formal verification（後面幾週會學的 BDD/SAT）。手動寫 directed test 只是一個起點，不是終點。</p>
+<p>另外，我後來拿同樣的 spec 去讓 Cursor 生成 Verilog code，發現 AI 生出來的版本跟我自己寫的架構差異蠻大的，它用了 <code>integer</code> 型別做中間計算，coding style 也比較偏 behavioral。這讓我想到：AI 生成的 code 看起來能跑，但你不知道它的 quality 好不好、有沒有隱藏的 bug，所以「驗證」這件事變得更重要了。</p>
 <div class="collapse-code"><input checked="checked" id="__collapse0" name="__collapse0" type="checkbox" /><div class="highlight"><span class="filename">vending_machine.v</span><pre><span></span><code><span class="no">`timescale</span><span class="w"> </span><span class="mh">1</span><span class="n">ns</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mh">1</span><span class="n">ps</span>
 
 <span class="k">module</span><span class="w"> </span><span class="n">vending_machine</span><span class="w"> </span><span class="p">(</span>

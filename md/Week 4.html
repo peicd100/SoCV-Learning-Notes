@@ -1418,7 +1418,7 @@
   }
 
   function voiceLabel(v){
-    return `${v.lang} — ${v.name}`;
+    return `${v.lang} / ${v.name}`;
   }
 
   function syncVoiceDropdowns(){
@@ -2636,14 +2636,14 @@ is now available!
 <h1 id="week-4">Week 4<a class="headerlink" href="#week-4" title="Permanent link"></a></h1>
 <h2 id="ln-exploring-bdd-constructions-with-different-variable-orders">[LN] Exploring BDD constructions with different variable orders<a class="headerlink" href="#ln-exploring-bdd-constructions-with-different-variable-orders" title="Permanent link"></a></h2>
 <h3 id="recommended-support-bsetorder--command-options-in-gv">(Recommended) Support "BSETOrder &lt;DFS | RDFS&gt;" command options in GV<a class="headerlink" href="#recommended-support-bsetorder--command-options-in-gv" title="Permanent link"></a></h3>
-<p>我查了 GV 目前的 <code>BSETOrder</code> 指令，發現只支援 <code>-file</code>（按 Verilog 檔案中 PI 的宣告順序）和 <code>-rfile</code>（反向檔案順序）。<code>-dfs</code> 和 <code>-rdfs</code> 還沒有被實作——這正是建議我們去做的功能。</p>
+<p>我查了 GV 目前的 <code>BSETOrder</code> 指令，發現只支援 <code>-file</code>（按 Verilog 檔案中 PI 的宣告順序）和 <code>-rfile</code>（反向檔案順序）。<code>-dfs</code> 和 <code>-rdfs</code> 還沒有被實作，這正是建議我們去做的功能。</p>
 <p>概念上，DFS order 是從所有 PO 和 FF 輸入出發，沿著電路往回做 post-order DFS traversal，按遇到 PI 的順序排列。這樣的好處是：在同一個 cone 裡的 PI 會被排在一起，相關性高的變數自然相鄰，BDD 因此更容易共享子結構。</p>
 <p>GV 的 <code>CirMgr::_dfsList</code> 其實已經存了這個順序，所以實作上只需要在 <code>BSetOrderCmd::exec()</code> 裡加一個 <code>-dfs</code> 分支，從 <code>_dfsList</code> 中過濾出 PI 類型的 gate，按出現順序設定 BDD 變數即可。<code>-rdfs</code> 就是把這個順序反過來。</p>
 <p>目前我還沒有去改 GV 的原始碼，但理解了這個方法的原理。</p>
 <h3 id="modify-the-input-order-of-the-verilog-file">Modify the input order of the Verilog file<a class="headerlink" href="#modify-the-input-order-of-the-verilog-file" title="Permanent link"></a></h3>
 <p>既然 GV 的 <code>bseto -file</code> 是照 Verilog 的 PI 宣告順序來排 BDD 變數，我可以直接改 Verilog 檔的 input 宣告順序來得到不同的 variable order。</p>
 <p>我寫了一個 interleaved 版本的 8-bit adder，把 input 宣告改成 <code>a0, b0, a1, b1, ..., a7, b7</code>（而不是 <code>a[7:0], b[7:0]</code>），這樣 <code>bseto -file</code> 就會自動按交錯順序排列：</p>
-<p><strong>8-bit adder — file order vs interleaved order：</strong></p>
+<p><strong>8-bit adder（file order vs. interleaved order）：</strong></p>
 <table>
 <thead>
 <tr>
@@ -2701,18 +2701,18 @@ is now available!
 </tbody>
 </table>
 <p>差距非常驚人：file order 下 cout 要 758 個節點（指數成長），interleaved 只要 24 個（線性成長）。</p>
-<p>原因是加法器的運算是 bit-wise aligned 的——第 i 位的 sum 和 carry 主要依賴同一位的 <code>a_i</code>、<code>b_i</code> 加上前一位的 carry。交錯順序讓相關的變數在 BDD 決策樹上早期就相鄰出現，BDD 可以最大化 subgraph sharing。而 file order 把所有 <code>a</code> 排前面、所有 <code>b</code> 排後面，延遲了同一位元的 <code>a</code> 和 <code>b</code> 的聯合決策，造成大量不可合併的子結構。</p>
+<p>原因是加法器的運算是 bit-wise aligned 的：第 i 位的 sum 和 carry 主要依賴同一位的 <code>a_i</code>、<code>b_i</code> 加上前一位的 carry。交錯順序讓相關的變數在 BDD 決策樹上早期就相鄰出現，BDD 可以最大化 subgraph sharing。而 file order 把所有 <code>a</code> 排前面、所有 <code>b</code> 排後面，延遲了同一位元的 <code>a</code> 和 <code>b</code> 的聯合決策，造成大量不可合併的子結構。</p>
 <p>我也試了 GV 內建的 <code>bseto -rfile</code>（反向檔案順序）：</p>
-<p><strong>8-bit adder — rfile order：</strong><br />
+<p><strong>8-bit adder（rfile order）：</strong><br />
 節點數：3, 6, 12, 24, 48, 96, 192, 384, 511</p>
 <p>比 file order 稍好（511 &lt; 758），但仍然是指數成長，遠不如 interleaved 的 24。</p>
-<p>看到 758 → 24 這個 30 倍的差距時我真的嚇到了——同一個電路、同一個 BDD engine，只是變數排列不同就可以差這麼多。這讓我深刻體會到 variable ordering 在 BDD-based verification 中有多關鍵。實務上如果 ordering 選錯了，BDD 可能直接 memory explosion 建不起來；選對了，同一個問題可能幾秒鐘就解完。</p>
+<p>看到 758 → 24 這個 30 倍的差距時我真的嚇到了：同一個電路、同一個 BDD engine，只是變數排列不同就可以差這麼多。這讓我深刻體會到 variable ordering 在 BDD-based verification 中有多關鍵。實務上如果 ordering 選錯了，BDD 可能直接 memory explosion 建不起來；選對了，同一個問題可能幾秒鐘就解完。</p>
 <h3 id="any-creative-idea">Any creative idea?<a class="headerlink" href="#any-creative-idea" title="Permanent link"></a></h3>
 <p>一個有趣的方向是做 <strong>自動化的 variable order 搜尋</strong>。可以寫一個腳本來嘗試多種排列（file、rfile、interleaved、random permutation&hellip;），對每種排列跑 <code>bseto -file</code> + <code>bcons -all</code> 並記錄總節點數，最後挑最好的。</p>
 <p>另一個想法是結合 <strong>dynamic reordering</strong>：先用任意順序建完 BDD，再套用 sifting 演算法把每個變數上下移動，看哪個位置讓總節點數最小。很多 BDD library（如 CUDD）有內建這個功能。GV 的 lecture note 也有提到 dynamic variable reordering（pp. 7–13）。</p>
 <h3 id="try-different-variable-for-different-boolean-functions-can-you-conclude-with-some-good-heuristics-for-bdd-variable-ordering">Try different variable for different Boolean functions. Can you conclude with some "good" heuristics for BDD variable ordering?<a class="headerlink" href="#try-different-variable-for-different-boolean-functions-can-you-conclude-with-some-good-heuristics-for-bdd-variable-ordering" title="Permanent link"></a></h3>
 <p>我把 adder 和 multiplier 在不同順序下的結果整理如下：</p>
-<p><strong>8-bit adder — 最大 PO 節點數比較：</strong></p>
+<p><strong>8-bit adder（最大 PO 節點數比較）：</strong></p>
 <table>
 <thead>
 <tr>
@@ -2739,7 +2739,7 @@ is now available!
 </tr>
 </tbody>
 </table>
-<p><strong>8-bit multiplier — 最大 PO 節點數比較：</strong></p>
+<p><strong>8-bit multiplier（最大 PO 節點數比較）：</strong></p>
 <table>
 <thead>
 <tr>
