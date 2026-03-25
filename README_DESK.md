@@ -1,7 +1,6 @@
 # PEICD100
 
 ## 預覽
-## 預覽
 ```
 activate mkdocs_desk
 mkdocs serve --dirty 
@@ -12,7 +11,7 @@ activate mkdocs_desk
 mkdocs serve 
 
 ```
-## 每次寫完中完成圖中的[LN]。
+## 每次寫完。
 ```
 activate mkdocs_desk
 mkdocs gh-deploy
