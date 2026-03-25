@@ -24,9 +24,9 @@
 
 **Insight**
 
-做完之後我深刻體會到 directed test 的局限性——我寫了 18 個 test case 覺得「應該夠了」，但其實不可能覆蓋所有輸入組合。一個完整的測試應該要考慮的空間是：4 種硬幣 x 每種 0-3 枚 x 3 種商品 x 各種庫存狀態，排列組合的數量遠超過手動能寫的。這讓我理解為什麼需要 constrained random verification（Week 1 講到的 CRV）和 formal verification（後面幾週會學的 BDD/SAT）。手動寫 directed test 只是一個起點，不是終點。
+做完之後我深刻體會到 directed test 的局限性：我寫了 18 個 test case 覺得「應該夠了」，但其實不可能覆蓋所有輸入組合。一個完整的測試應該要考慮的空間是：4 種硬幣 x 每種 0-3 枚 x 3 種商品 x 各種庫存狀態，排列組合的數量遠超過手動能寫的。這讓我理解為什麼需要 constrained random verification（Week 1 講到的 CRV）和 formal verification（後面幾週會學的 BDD/SAT）。手動寫 directed test 只是一個起點，不是終點。
 
-另外，我後來拿同樣的 spec 去讓 Cursor 生成 Verilog code，發現 AI 生出來的版本跟我自己寫的架構差異蠻大的——它用了 `integer` 型別做中間計算，coding style 也比較偏 behavioral。這讓我想到：AI 生成的 code 看起來能跑，但你不知道它的 quality 好不好、有沒有隱藏的 bug，所以「驗證」這件事變得更重要了。
+另外，我後來拿同樣的 spec 去讓 Cursor 生成 Verilog code，發現 AI 生出來的版本跟我自己寫的架構差異蠻大的，它用了 `integer` 型別做中間計算，coding style 也比較偏 behavioral。這讓我想到：AI 生成的 code 看起來能跑，但你不知道它的 quality 好不好、有沒有隱藏的 bug，所以「驗證」這件事變得更重要了。
 
 
 /// collapse-code  
@@ -791,5 +791,4 @@ FINAL RESULT: ALL TESTS PASSED
 ============================================================
 ```
 ///
-
 
