@@ -13,3 +13,4 @@
 - [week 3](md/Week 3.md)
 - [week 4](md/Week 4.md)
 - [week 5](md/Week 5.md)
+- [week 6](md/Week 6.md)

@@ -1,0 +1,287 @@
+# Week 6
+
+## Proving Assertions by BDDs
+
+### How to represent and compute the set of reachable states R(S) in BDD?
+
+我覺得這一段真正把「BDD 很會壓函數」和「BDD 真的能拿來做 verification」連起來了。前面幾週我比較像是在學怎麼把布林函數變成一張 compact、canonical 的圖；到這裡，問題終於變成我最在意的那件事：如果一個設計有很多 state，我到底怎麼用 BDD 把「所有真的走得到的 state」算出來？
+
+對 safety property 來說，我現在會把問題寫成一句很精確的話：我不是要問某個 monitor function 在整個布林空間上是不是永遠為 0，而是要問它在 **reachable states** 上是不是永遠為 0。這兩件事差非常多。整個布林空間裡一定會有很多根本到不了的 assignment，如果我把那些 unreachable state 也一起算進去，很多本來正確的設計看起來都會被「假反例」污染。
+
+所以核心任務其實有兩步。第一步是建出 reachable state set 的 characteristic function。第二步才是把它和 bad state monitor 做交集。如果交集為空，代表所有可達 state 都滿足 property；如果交集非空，代表真的存在某些會發生的執行路徑把系統帶進 violation。也就是說，BDD 在這裡不是直接拿來看 monitor 本身，而是拿來承載整個 state space traversal。
+
+我覺得這個轉換很有意思，因為它把「驗證」從 trace thinking 變成 set thinking。Simulation 看的是一條一條波形；BDD based checking 看的是一整團 state set 怎麼沿著 transition relation 擴張。做完這一段之後，我終於比較能把 symbolic model checking 當成一個真正不同層次的方法，而不是「把 simulation 跑更多次」而已。
+
+### BDD to represent a set
+
+我一開始其實有點卡住，因為「集合」看起來像數學課會出現的東西，不像電路。但換個角度之後就很自然了：一個 state set \(S\) 本來就可以用它的 characteristic function 來表示。只要我用 state variables \(X = (x_0, x_1, \dots, x_{n-1})\) 編碼一個 state，那麼屬於集合 \(S\) 的 assignment 令函數值為 1，不屬於的令函數值為 0，就得到一個標準的布林函數。
+
+\[
+\chi_S(X) =
+\begin{cases}
+1, & X \in S \\
+0, & X \notin S
+\end{cases}
+\]
+
+這樣一來，集合運算突然全都變成我已經很熟的布林運算。聯集就是 OR，交集就是 AND，補集就是 NOT。這個觀念非常關鍵，因為 reachability analysis 其實一直都在做集合運算：把新算到的 states 和舊集合做聯集，把 reachable set 和 bad set 做交集，或者對某些 irrelevant variable 做 existential quantification。
+
+我覺得這個表示法最漂亮的地方，是它完全沒有額外發明新資料結構。BDD 本來就拿來表示布林函數，所以只要我接受「集合 = characteristic function」這個轉換，整個 symbolic traversal 馬上就能沿用既有的 BDD reduction、sharing、quantification、rename 操作。這比我原本以為的「需要另外做一套 graph traversal」穩很多。
+
+延伸來想，這也解釋了為什麼 state encoding 很重要。如果 encoding 本身很亂，集合的 characteristic function 也會跟著變複雜，BDD 就不一定壓得下來。也就是說，reachability analysis 的困難不只來自 state 數量本身，也來自我怎麼把那些 state 映射成布林空間。
+
+### BDD to represent a relationship
+
+如果 set 可以用 characteristic function 表示，那 relationship 其實也可以。只不過這次不是一組 state variables，而是兩組。對 sequential design 來說，最重要的 relationship 就是 transition relation，也就是「current state 會不會在某些 input 下轉到某個 next state」。
+
+我現在會把一個 relation \(R\) 寫成 \(\chi_R(X, Y)\)，其中 \(X\) 代表 current state variables，\(Y\) 代表 next state variables。若 \((X, Y)\) 這一對 state 之間存在合法 transition，函數值就是 1；否則就是 0。於是 relation 不再只是抽象定義，而是一個可以直接做 BDD 操作的布林物件。
+
+\[
+\chi_R(X, Y) =
+\begin{cases}
+1, & (X, Y) \in R \\
+0, & (X, Y) \notin R
+\end{cases}
+\]
+
+這裡最重要的 insight 是：一旦 relation 也被放進 BDD，reachability analysis 就不再需要「枚舉每個 state 再看下一步」。我可以直接把一整個 state set 和 transition relation 相交，再把 current state variables 量掉，整批算出所有 next states。這就是 symbolic image computation 的核心威力。
+
+我以前會把 relation 想成一張很大的 state-transition graph，但那個想法很快就會爆，因為節點和邊都太多。換成 BDD 之後，我比較像是在操作一個壓縮過的邏輯條件集合。它不會把每一條 transition 邊顯性列出來，而是共享那些重複的子結構。這就是為什麼 symbolic 方法在很多例子裡可以碰到比 explicit graph 大得多的系統。
+
+### From “transition functions” to “transition relationship” (of a design)
+
+對 RTL 來說，最直接拿到的通常不是 `TR(X, Y)`，而是每個 FF 的 next state function，也就是
+\(\delta_i(X, I)\)。換句話說，我先知道的是「第 \(i\) 個 FF 下一拍會變成什麼布林函數」，而不是整體的關係式。這兩者看起來有差，但其實可以系統性地轉換。
+
+如果我用 \(y_i\) 代表第 \(i\) 個 next state variable，那整體 transition relation 可以寫成每一個 next state bit 都必須等於自己的 transition function，最後再把 primary inputs \(I\) 量掉：
+
+\[
+TR(Y, X) = \exists I \; \bigwedge_i \left( y_i = \delta_i(X, I) \right)
+\]
+
+我很喜歡這個公式，因為它把「電路在做什麼」和「state graph 的邊在哪裡」完全接上了。原本我只看到一串 FF assignments；轉成 relation 之後，我得到的是「哪些 current state / next state 配對是合法的」。這個視角一換，image、pre image、fixed point 這些 symbolic traversal 的動作就全都有著力點。
+
+這件事也讓我對 `current state namespace` 和 `next state namespace` 的分工更有感。做 image 的時候，我常常先在 \(Y\) 空間得到新的一團 states，然後還要把它 rename 回 \(X\) 空間，才方便和舊的 reachable set 做聯集。GV 裡那兩個 helper 名稱 `find_ns()` 和 `ns_to_cs()` 雖然目前還沒實作，但只看名字我就大概能猜到它們就是在處理這種 current / next namespace 轉換。
+
+延伸來想，這也是很多 symbolic algorithm 很吃 representation design 的原因。從 transition function 變成 transition relation 的方式不同，TR BDD 的大小可能差非常多。後面為什麼會特別講 partitioned TR、early quantification、approximation，我覺得都可以回頭連到這一點：因為 `TR` 往往是整個 sequential BDD flow 裡最難壓的那一塊。
+
+### Computing the set of reachable states by BDDs
+
+真正的 forward reachability，我現在會把它記成一個很乾淨的 least fixed point 過程。先從初始狀態集合 \(R_0(X)\) 出發，然後反覆做 image，直到沒有新狀態被加入為止。
+
+\[
+R_0(X) = Init(X)
+\]
+
+\[
+Img_k(Y) = \exists X \left( TR(Y, X) \land R_k(X) \right)
+\]
+
+\[
+R_{k+1}(X) = R_k(X) \lor rename_{Y \rightarrow X}(Img_k(Y))
+\]
+
+如果某一步得到 \(R_{k+1} = R_k\)，就代表 fixed point 到了，後面不會再有新 state 出現。這時最後那個 \(R_k\) 就是全部 reachable states。接著 safety property 的檢查也很直接：把 bad state monitor \(M(X)\) 和 \(R_k(X)\) 做交集。如果結果是 0，代表 `AG(~M)` 成立；如果不是 0，代表 violation 的確可達。
+
+\[
+BadReach(X) = R^\*(X) \land M(X)
+\]
+
+我覺得這個公式比我原本想像得更有力量，因為它其實把「窮舉所有可達行為」壓縮成一個固定點運算。當然，實務上的難點仍然存在，尤其是 TR BDD 和 reach set BDD 都可能爆掉；但至少從演算法骨架來看，整件事非常清楚，不會陷在「好像應該要看很多 trace」那種模糊感裡。
+
+另外我也終於理解為什麼 symbolic model checking 一直強調 rename 和 quantification。沒有 existential quantification，我就無法把 current state variables 消掉，只留下 next states；沒有 namespace rename，我就無法把新 state 集合再送進下一輪迭代。也就是說，BDD based reachability 真正的主角不只是 BDD 本身，而是 BDD 加上 quantification、rename、fixed point 這整套運算。
+
+## An Example of BDD-Based Assertion Checking
+
+### Why are the BDDs for “p1” and “p2” not simply ‘0’s?
+
+拿 `trafficLight` 來看，這件事就變得很具體。`p1` 檢查 `light` 是否落在非法 encoding；`p2` 檢查 counter 是否超過對應燈號的上限。如果我只看 random simulation，我很容易得到「它們都一直是 0，所以應該沒事」這種印象。但一旦我改用 BDD 的角度來想，就會發現 raw monitor BDD 根本不需要是常數 0。
+
+原因很簡單，因為 raw monitor BDD 活在整個布林空間裡，而不是只活在 reachable states 裡。舉例來說，對 `p1` 而言，只要 `light = 2'b11`，monitor 就會變成 1；可是這個編碼在 reset 後是否真的走得到，完全要看 transition relation。若它從來不可達，那它就不構成真正的反例。
+
+所以我現在會把 assertion checking 拆成兩個不同層次。第一層是 monitor function 本身描述哪些 state 是 bad states。第二層才是 reachable state computation 告訴我這些 bad states 裡面哪些真的能從初始狀態走到。只有兩者的交集非空，我才能說 property 真的失敗。
+
+這個例子讓我很有感，因為它直接修正了我原本對「看 monitor BDD 就好」的直覺。原來 sequential verification 裡最難的不是寫出 monitor，而是判斷 monitor 對應的 bad states 到底會不會被 transition relation 接到。也就是說，真正的工作量不在 property 字面，而在 reachability。
+
+## [LN] Implement BDD-Based Assertion Checking in GV
+
+### What has already been implemented in GV?
+
+我這次先去確認目前 repo 的真實狀態，而不是照著舊說明假設它還停在某個版本。結果我發現現在的 `main.cpp` 已經把 `initProveCmd()` 掛進初始化流程了，所以 prove commands 並不是完全不存在。我實際跑 `./gv` 再輸入 `help`，也確實看得到 `PINITialstate`、`PTRansrelation`、`PIMAGe`、`PCHECKProperty`。
+
+更進一步看 source，我發現 `gv/src/prove/proveCmd.cpp` 其實已經把 command parsing、option checking、以及前置條件都寫好了。像 `PIMAGe` 會先檢查 initial state BDD 和 transition relation BDD 有沒有建起來；`PCHECKProperty` 則會先確認 reachable state BDD 是否存在。這代表 CLI 外殼和控制流程已經有了。
+
+真正還缺的，是 `gv/src/prove/proveBdd.cpp` 裡的演算法核心。`buildPInitialState()`、`buildPTransRelation()`、`buildPImage()`、`runPCheckProperty()` 都還是 `TODO`，連 `find_ns()` 和 `ns_to_cs()` 也還沒補完。換句話說，現在的 GV 比較像是「命令介面已經搭好，但 symbolic traversal engine 還沒接上」。
+
+我覺得這個狀態其實很適合學習。因為它不是從零開始，也不是一個完全黑盒的完成品。對我來說，這剛好是一種最容易理解的中間狀態：我看得見整體 workflow，也看得見哪幾個函式決定演算法是否成立。這比直接丟一份全部寫完的 code 還更能幫我理解每個步驟在做什麼。
+
+### What should `buildPInitialState()` do?
+
+這個函式的責任我覺得最單純，就是把 initial state 的 characteristic function 建起來，然後存進 `_initState`。從 `proveBdd.cpp` 的註解來看，這裡預期的假設是「initial state 全 0」，也就是所有 FF 的 current state bits 一開始都為 0。
+
+如果用 BDD 的語言來寫，做法其實就是把每一個 current state variable 的 `0` 約束 AND 起來。例如有 \(x_0, x_1, \dots, x_{n-1}\) 代表 FF state，那麼初始狀態就是：
+
+\[
+Init(X) = \bigwedge_i \neg x_i
+\]
+
+這件事看起來小，但我覺得它非常重要，因為後面所有 reachability 都是從這裡長出去的。只要 initial state 寫錯，後面的 reachable set、property result、甚至 bug 是否可達都會全部偏掉。也就是說，`buildPInitialState()` 雖然短，卻是整條證明流程的根。
+
+如果這個命令後面接了變數名稱，例如 `PINITialstate init`，那它還要把 `_initState` 這顆 BDD 掛回使用者指定的符號名稱，方便後續 `BREPort` 或其他命令檢查。我覺得這種 CLI 介面設計很實用，因為它讓 prove 流程可以和原本的 BDD report / draw 工具接起來。
+
+### What should `buildPTransRelation()` do?
+
+對我來說，這個函式是真正的核心之一，因為它要把原本散落在各個 FF 上的 next state functions，整理成一個可供 image computation 使用的 transition relation BDD。從 symbolic model checking 的標準寫法來看，它至少要替每個 next state bit 建出「\(y_i\) 等於對應 transition function」的約束，再全部 AND 起來。
+
+如果沿用前面的符號，概念上就是：
+
+\[
+TR(Y, X) = \exists I \; \bigwedge_i \left( y_i = \delta_i(X, I) \right)
+\]
+
+其中 \(I\) 是 primary inputs。這裡最麻煩的地方，不是公式不好懂，而是實作時得非常清楚哪些 support 對應 current state bits，哪些支援 next state namespace，哪些又是 inputs。只要 rename 或 variable order 搞混，整張 relation BDD 就可能語意錯掉。
+
+另一個我注意到的點是，這個函式不只要設 `_tr`，還要設 `_tri`。從命名看起來，我猜 `_tri` 很可能是另一種對 image / pre-image 較方便的 relation 版本，例如 inverse 或 renamed relation；但就目前 repo 其他檔案來看，還沒有看到 `_tri` 被真正消費的地方，所以我不敢把它的語意寫死。比較穩的說法是：`buildPTransRelation()` 應該至少把 prove flow 需要的 relation handles 都建好，並和 CLI 上的 `PTRansrelation` 命令介面對齊。
+
+### What should `buildPImage()` do?
+
+`buildPImage(level)` 的責任，就是把 reachable state fixed point 真正跑起來。從 `PIMAGe -Next <num>` 的命令介面來看，它至少要支援「往前做幾輪 image」這件事，所以實作上應該會從 `_initState` 或目前最後一個 `_reachStates.back()` 出發，反覆做 image，最多做 `level` 次，或者在提早碰到 fixed point 時就停下來。
+
+這裡最核心的資料流是：先拿目前的 reachable set 去和 `TR` 做 conjunction，再量掉 current state variables，得到一團 next states，最後把 next state namespace rename 回 current state namespace，才能和舊的 reachable set 做聯集。也就是說，`find_ns()` 和 `ns_to_cs()` 這兩個 helper 雖然現在還空著，但它們很可能就是用來處理這種 current / next namespace 轉換。
+
+我認為 `_reachStates` 應該記的是「每一輪累積完成之後的 reachable set」，而 `_isFixed` 則在沒有新 state 被加進來時設成 true。這樣一來，不管我要拿最後結果去證明 property，或是想看第 \(k\) 輪後的 state set，都有明確的資料可以取用。
+
+我很喜歡這個函式，因為它最能把理論和工程接起來。理論上它就是 least fixed point iteration；工程上它則必須面對 BDD size、variable order、TR 表示法、memory explosion。這個對照讓我很明白：知道演算法公式只是起點，真正能不能跑起來，還要看表示法和資料流設計夠不夠穩。
+
+### What should `runPCheckProperty()` do?
+
+這個函式的邏輯反而相對直接。當 `_reachStates` 已經有最終 reachable set 之後，它只要把這個集合和 monitor BDD 做交集，就能回答 safety property `AG(~monitor)` 是否成立。如果交集為 0，代表所有可達 state 都避開 violation；如果交集非 0，代表 bad state 的確可達。
+
+\[
+BadReach(X) = Reach(X) \land Monitor(X)
+\]
+
+我覺得這裡最值得注意的地方，是 `runPCheckProperty()` 並不需要自己再做 symbolic traversal。它吃的是 traversal 的結果。也就是說，`buildPImage()` 決定「哪些 state 可達」，`runPCheckProperty()` 則只負責把這個結果轉成 verification 結論。這種模組切分很合理，因為它讓 state exploration 和 property evaluation 各自獨立。
+
+另外，這一週的範圍其實還沒走到後面的 witness trace 擷取，所以我認為最小可用版本的 `runPCheckProperty()` 只要能可靠地回報 `PROVED` 或 `FAILED` 就夠了。如果要進一步印出 witness trace，那已經是下一段主題的工作了，不需要在 Week 6 先硬塞進去。
+
+### If I want to finish it, where should I start?
+
+如果我真的要補完這一套，我不會一開始就拿 `vending.v` 這種比較大又有算術和找零邏輯的例子衝。我會先分成兩層。第一層是最小單元測試，最好是一個只有 1 個或 2 個 FF 的 toy design，讓我能手算 reachable states，確認 `buildPInitialState()`、`buildPImage()` 和 rename 流程沒有寫反。第二層才是完整 smoke test。
+
+如果只限目前 repo 內現成的例子，我會先用 `traffic.v` 當 smoke test，因為它已經有明確的 property outputs，整條 prove flow 最容易接起來。`alu.v` 雖然比較小，但它沒有像 `traffic.v` 那樣現成的 monitor output，所以比較不適合直接拿來驗 `PCHECKProperty` 這條命令。
+
+我還注意到一個小細節：現在投影片裡的舊說明提到要手動把 `main.cpp` 的 `initProveCmd()` 打開，但目前這份 repo 已經不是那個狀態了，`help` 也確實列得出 prove commands。換句話說，現在真正要補的不是 command registration，而是 symbolic engine 本身。這個判斷我覺得很重要，因為它決定了我修 bug 的優先順序。
+
+/// collapse-code
+```text title="我會先跑的 GV prove flow"
+# 目前這份 repo 已經能在 help 中看到 prove commands
+# 我這裡用 cirread，和投影片中的 cirr 是同一組讀電路命令
+
+cirread -v ./designs/V3/traffic/traffic.v
+breset 64 8009 30011
+bsetorder -file
+bconstruct -all
+PINITialstate init
+PTRansrelation tri tr
+PIMAGe -next 10 reach
+PCHECKProperty -output 0
+
+# 註：
+# 1. 目前 proveCmd.cpp 的參數順序是 triName 再 trName
+# 2. 真正缺的是 proveBdd.cpp 的演算法，不是 CLI parser
+```
+///
+
+## Advanced Techniques for Sequential BDD
+
+### Backward pre-image computation
+
+Forward reachability 很直覺，但不一定永遠是最省的。有些時候，我真正關心的是「哪些 state 會通往 bad states」，那我就可以反過來從 \(\neg p\) 往回做 backward pre-image。這樣做的直覺是：如果壞狀態集合本身很小，也許往回長出的集合會比從 init 往前推還更省。
+
+如果把壞狀態集合記成 \(T_0(X) = \neg p(X)\)，那 backward reachable set 可以這樣長：
+
+\[
+T_{-(n+1)}(X) = \exists Y \left( TR(Y, X) \land T_{-n}(Y) \right)
+\]
+
+\[
+B_{-(n+1)}(X) = B_{-n}(X) \lor T_{-(n+1)}(X)
+\]
+
+一旦 backward fixed point 到了，我只要再看它和 initial states 有沒有交集就好。如果交集為空，代表從 init 永遠走不到 violation，因此 property 成立。這個想法我覺得非常漂亮，因為它把「證明安全」改寫成「壞事能不能倒推回來碰到起點」。
+
+我還滿喜歡 backward 方法的一個原因，是它有時可以先從比較少的變數開始思考，再逐步長大。當壞狀態只依賴少數 state bits 時，這種起點通常比整個 init space 更聚焦。不過公開投影片也提醒得很誠實：backward 不保證一定比較快，它到底有沒有優勢，很看設計結構和 property 本身。
+
+### Speeding up the image computation by Frontier set simplification
+
+Frontier set simplification 的觀念，我覺得是這週最實用的一個技巧。一般 forward traversal 在第 \(k\) 輪之後會拿整個 \(R_k\) 再去做下一輪 image，但其實裡面大部分 state 早就展開過了。真正會帶來新東西的，只有「上一輪剛新增的那一圈 frontier」。
+
+如果我把第 1 輪新增加的 state 寫成
+
+\[
+D_1(Y) = S_1(Y) \land \neg S_0(Y)
+\]
+
+那下一輪其實可以只用 \(D_1\) 去做 image，而不是再把整個 \(S_1\) 都送進去。這樣做的直觀好處是很明顯的：避免重複展開那些早就探索過的 states，通常能省掉不少時間。
+
+更進一步，公開投影片還提到一個更聰明的做法，不是直接用 \(D_1\)，而是用
+`restrict(S1, ¬S0)` 來近似 frontier。這個結果保證至少包含真正的新 states，而且它的 BDD 往往比直接算差集還小。這個點我覺得很有味道，因為它不是改變演算法正確性，而是換一種更 BDD-friendly 的 frontier 表示法。
+
+我很喜歡這個技巧，因為它完全符合「不要重做沒必要的工作」這種工程直覺。做完這一段之後，我更能接受 why symbolic traversal 不只是公式推導，還很像在替固定點運算設計快取策略和增量更新策略。
+
+### Speeding up the image computation by Iterative squaring
+
+Iterative squaring 想解決的問題，不是單一步 image 太難，而是「到 fixed point 需要太多步」。像 counter 這種設計，單步 transition 很簡單，可是要一拍一拍推到所有 reachable states，時間框數會非常長。這時候就可以嘗試把多步 transition 先合成起來。
+
+公開投影片的寫法很清楚。先定義兩步關係：
+
+\[
+F_2(Y, X) = \exists K \left( TR(Y, K) \land TR(K, X) \right)
+\]
+
+接著再往上平方，得到四步、八步的 transition relation：
+
+\[
+F_4(Y, X) = \exists K \left( F_2(Y, K) \land F_2(K, X) \right)
+\]
+
+於是 reachability 就不一定要一拍一拍推，而可以一次跳很多步。概念上它非常像演算法裡的 repeated squaring，不再線性地做 \(1, 2, 3, 4\) 步，而是先準備 \(2, 4, 8, 16\) 步的 relation。
+
+不過這一招也不是萬靈丹。投影片很明白地說，iterative squaring 通常只在像 counter 這種極簡單的例子特別有感，對一般設計不一定划算。這讓我覺得很務實：理論上很漂亮的技巧，實務上仍然要看 relation 本身會不會先炸掉。也就是說，能不能平方成功，取決於多步 relation 有沒有比單步 relation 更容易壓縮。
+
+### Simplify the transition relation BDDs
+
+這一段我覺得本質上是在處理同一個痛點：TR BDD 常常是整條 sequential flow 最先爆掉的地方。所以與其等 TR 建完再想辦法救，不如一開始就換一種更容易管理的表示法。
+
+第一種想法是 **disjunctive partition**。如果 transition relation 可以寫成
+\(TR = \exists I (D_1 \lor D_2 \lor \dots \lor D_k)\)，那 existential quantification 可以分配到每個 disjunct 上。換句話說，image 可以拆成幾個比較小的子問題各自算，再把結果 OR 回來。這招的前提是 relation 真的能自然寫成 disjunction，否則分解本身就不划算。
+
+第二種是更常見的 **conjunctive partition**。因為每個 next state bit 都來自自己的 transition function，TR 很自然就會長成一串 conjunction：
+
+\[
+TR(Y, X) = \exists I \left( C_1(Y, X, I) \land C_2(Y, X, I) \land \dots \land C_n(Y, X, I) \right)
+\]
+
+麻煩的是 existential quantification 不能像 disjunction 那樣直接拆開，所以不能硬套第一種方法。
+
+這時候真正有用的是 **early quantification**。因為電路通常有 locality，很多 \(C_i\) 只依賴一小部分變數。如果某個變數在後面剩下的 factors 裡已經不再出現，我就可以提早把它量掉，不必等整個大 conjunction 全部組完才一起做。這個技巧我很喜歡，因為它非常像資料流最佳化：不是改答案，而是把量掉變數的時機往前推，避免中間 BDD 無謂膨脹。
+
+做完這段之後，我對 partitioned TR 的理解變得比較具體。它不是單純把大式子切小，而是要善用 quantification 能不能分配、以及哪些變數可以提早消失。真正關鍵的不是「我切成幾塊」，而是「我能不能讓中間產物一路保持小」。
+
+### Approximate BDD techniques
+
+這一段我一開始最怕的是 terminology 混亂，但把保證講清楚之後其實很直白。Approximation 的目標，是當 exact TR 或 exact reachable set 壓不下來時，退一步找一個比較小、但仍然對 verification 有用的近似表示。重點不是完全一樣，而是保證要夠明確。
+
+我把 under-approximation 和 over-approximation 的差別整理成下面這張表：
+
+| 方法 | 近似方向 | 我能相信什麼 | 我不能相信什麼 |
+|------|----------|--------------|----------------|
+| Under-approximation | 只保留原集合中的一部分 | 如果真的撞到 bad state，那一定是真 bug | 沒撞到 bad state 不能證明安全 |
+| Over-approximation | 把集合放大，允許一些額外 state | 如果放大後仍然撞不到 bad state，就能證明安全 | 撞到 bad state 可能只是 spurious result |
+
+我覺得這樣講比單純記名詞穩很多。對 under-approximation 來說，它比較像「安全的反例搜尋」；對 over-approximation 來說，它比較像「安全的證明工具」。兩者都不是萬能，但保證方向剛好互補。
+
+公開投影片還列了幾個典型技巧。Under-approximation 會透過替換某些 BDD node 為 child、shared grandchild、甚至常數 0，讓函數保留較少 minterms，但提高每個 node 所承載的密度。Over-approximation 則可能把某些 arc 放寬成 1、把 state variables 分群拆成多張 BDD、或直接對 netlist 做 abstraction。這些做法雖然外觀差很多，但本質上都在做同一件事：拿精確度去換容量。
+
+我很喜歡這一段，因為它很誠實地承認 exact approach 不是永遠做得到。這不是投降，而是更成熟的工程判斷：當 exact BDD 已經明顯撐不住時，先選對 approximation 方向，至少還能保留某一側的結論保證。我覺得這種思維很重要，因為它讓 verification 不再只是「做不做得到」，而是「在做不到 exact 的時候，我還能保住哪一種結論」。
