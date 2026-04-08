@@ -3116,7 +3116,7 @@ BadReach(X) = R^\*(X) \land M(X)
 <h2 id="ln-implement-bdd-based-assertion-checking-in-gv">[LN] Implement BDD-Based Assertion Checking in GV<a class="headerlink" href="#ln-implement-bdd-based-assertion-checking-in-gv" title="Permanent link"></a></h2>
 <h3 id="what-has-already-been-implemented-in-gv">What has already been implemented in GV?<a class="headerlink" href="#what-has-already-been-implemented-in-gv" title="Permanent link"></a></h3>
 <p>我這次先去確認目前 repo 的真實狀態，而不是照著舊說明假設它還停在某個版本。結果我發現現在的 <code>main.cpp</code> 已經把 <code>initProveCmd()</code> 掛進初始化流程了，所以 prove commands 並不是完全不存在。我實際跑 <code>./gv</code> 再輸入 <code>help</code>，也確實看得到 <code>PINITialstate</code>、<code>PTRansrelation</code>、<code>PIMAGe</code>、<code>PCHECKProperty</code>。</p>
-<p>更進一步看 source，我發現 <code>gv/src/prove/proveCmd.cpp</code> 其實已經把 command parsing、option checking、以及前置條件都寫好了。像 <code>PIMAGe</code> 會先檢查 initial state BDD 和 transition relation BDD 有沒有建起來；<code>PCHECKProperty</code> 則會先確認 reachable state BDD 是否存在。這代表 CLI 外殼和控制流程已經有了。</p>
+<p>更進一步看 source，我發現 <code>gv/src/prove/proveCmd.cpp</code> 其實已經把 command parsing、option checking、以及前置條件都寫好了。像 <code>PIMAGe</code> 會先檢查 initial state BDD 和 transition relation BDD 有沒有建起來；<code>PCHECKProperty</code> 則會先確認 reachable state BDD 是否存在。這代表 CLI 外殼和控制流程已經有了。另外，這次我也把 <code>rand sim</code> 那條 simulation 支線的 include path 小 bug 修掉了，所以 <code>trafficLight</code> 的 random simulation 現在是能正常跑的。</p>
 <p>真正還缺的，是 <code>gv/src/prove/proveBdd.cpp</code> 裡的演算法核心。<code>buildPInitialState()</code>、<code>buildPTransRelation()</code>、<code>buildPImage()</code>、<code>runPCheckProperty()</code> 都還是 <code>TODO</code>，連 <code>find_ns()</code> 和 <code>ns_to_cs()</code> 也還沒補完。換句話說，現在的 GV 比較像是「命令介面已經搭好，但 symbolic traversal engine 還沒接上」。</p>
 <p>我覺得這個狀態其實很適合學習。因為它不是從零開始，也不是一個完全黑盒的完成品。對我來說，這剛好是一種最容易理解的中間狀態：我看得見整體 workflow，也看得見哪幾個函式決定演算法是否成立。這比直接丟一份全部寫完的 code 還更能幫我理解每個步驟在做什麼。</p>
 <h3 id="what-should-buildpinitialstate-do">What should <code>buildPInitialState()</code> do?<a class="headerlink" href="#what-should-buildpinitialstate-do" title="Permanent link"></a></h3>
@@ -3180,7 +3180,7 @@ T_{-(n+1)}(X) = \exists Y \left( TR(Y, X) \land T_{-n}(Y) \right)
 B_{-(n+1)}(X) = B_{-n}(X) \lor T_{-(n+1)}(X)
 \]</pre>
 <p>一旦 backward fixed point 到了，我只要再看它和 initial states 有沒有交集就好。如果交集為空，代表從 init 永遠走不到 violation，因此 property 成立。這個想法我覺得非常漂亮，因為它把「證明安全」改寫成「壞事能不能倒推回來碰到起點」。</p>
-<p>我還滿喜歡 backward 方法的一個原因，是它有時可以先從比較少的變數開始思考，再逐步長大。當壞狀態只依賴少數 state bits 時，這種起點通常比整個 init space 更聚焦。不過公開投影片也提醒得很誠實：backward 不保證一定比較快，它到底有沒有優勢，很看設計結構和 property 本身。</p>
+<p>我還滿喜歡 backward 方法的一個原因，是它有時可以先從比較少的變數開始思考，再逐步長大。當壞狀態只依賴少數 state bits 時，這種起點通常比整個 init space 更聚焦。不過投影片也提醒得很誠實：backward 不保證一定比較快，它到底有沒有優勢，很看設計結構和 property 本身。</p>
 <h3 id="speeding-up-the-image-computation-by-frontier-set-simplification">Speeding up the image computation by Frontier set simplification<a class="headerlink" href="#speeding-up-the-image-computation-by-frontier-set-simplification" title="Permanent link"></a></h3>
 <p>Frontier set simplification 的觀念，我覺得是這週最實用的一個技巧。一般 forward traversal 在第 <span class="arithmatex">\(k\)</span> 輪之後會拿整個 <span class="arithmatex">\(R_k\)</span> 再去做下一輪 image，但其實裡面大部分 state 早就展開過了。真正會帶來新東西的，只有「上一輪剛新增的那一圈 frontier」。</p>
 <p>如果我把第 1 輪新增加的 state 寫成</p>
@@ -3188,12 +3188,12 @@ B_{-(n+1)}(X) = B_{-n}(X) \lor T_{-(n+1)}(X)
 D_1(Y) = S_1(Y) \land \neg S_0(Y)
 \]</pre>
 <p>那下一輪其實可以只用 <span class="arithmatex">\(D_1\)</span> 去做 image，而不是再把整個 <span class="arithmatex">\(S_1\)</span> 都送進去。這樣做的直觀好處是很明顯的：避免重複展開那些早就探索過的 states，通常能省掉不少時間。</p>
-<p>更進一步，公開投影片還提到一個更聰明的做法，不是直接用 <span class="arithmatex">\(D_1\)</span>，而是用<br />
+<p>更進一步，投影片還提到一個更聰明的做法，不是直接用 <span class="arithmatex">\(D_1\)</span>，而是用<br />
 <code>restrict(S1, ¬S0)</code> 來近似 frontier。這個結果保證至少包含真正的新 states，而且它的 BDD 往往比直接算差集還小。這個點我覺得很有味道，因為它不是改變演算法正確性，而是換一種更 BDD-friendly 的 frontier 表示法。</p>
 <p>我很喜歡這個技巧，因為它完全符合「不要重做沒必要的工作」這種工程直覺。做完這一段之後，我更能接受 why symbolic traversal 不只是公式推導，還很像在替固定點運算設計快取策略和增量更新策略。</p>
 <h3 id="speeding-up-the-image-computation-by-iterative-squaring">Speeding up the image computation by Iterative squaring<a class="headerlink" href="#speeding-up-the-image-computation-by-iterative-squaring" title="Permanent link"></a></h3>
 <p>Iterative squaring 想解決的問題，不是單一步 image 太難，而是「到 fixed point 需要太多步」。像 counter 這種設計，單步 transition 很簡單，可是要一拍一拍推到所有 reachable states，時間框數會非常長。這時候就可以嘗試把多步 transition 先合成起來。</p>
-<p>公開投影片的寫法很清楚。先定義兩步關係：</p>
+<p>投影片的寫法很清楚。先定義兩步關係：</p>
 <pre class="arithmatex">\[
 F_2(Y, X) = \exists K \left( TR(Y, K) \land TR(K, X) \right)
 \]</pre>
@@ -3242,7 +3242,7 @@ TR(Y, X) = \exists I \left( C_1(Y, X, I) \land C_2(Y, X, I) \land \dots \land C_
 </tbody>
 </table>
 <p>我覺得這樣講比單純記名詞穩很多。對 under-approximation 來說，它比較像「安全的反例搜尋」；對 over-approximation 來說，它比較像「安全的證明工具」。兩者都不是萬能，但保證方向剛好互補。</p>
-<p>公開投影片還列了幾個典型技巧。Under-approximation 會透過替換某些 BDD node 為 child、shared grandchild、甚至常數 0，讓函數保留較少 minterms，但提高每個 node 所承載的密度。Over-approximation 則可能把某些 arc 放寬成 1、把 state variables 分群拆成多張 BDD、或直接對 netlist 做 abstraction。這些做法雖然外觀差很多，但本質上都在做同一件事：拿精確度去換容量。</p>
+<p>投影片還列了幾個典型技巧。Under-approximation 會透過替換某些 BDD node 為 child、shared grandchild、甚至常數 0，讓函數保留較少 minterms，但提高每個 node 所承載的密度。Over-approximation 則可能把某些 arc 放寬成 1、把 state variables 分群拆成多張 BDD、或直接對 netlist 做 abstraction。這些做法雖然外觀差很多，但本質上都在做同一件事：拿精確度去換容量。</p>
 <p>我很喜歡這一段，因為它很誠實地承認 exact approach 不是永遠做得到。這不是投降，而是更成熟的工程判斷：當 exact BDD 已經明顯撐不住時，先選對 approximation 方向，至少還能保留某一側的結論保證。我覺得這種思維很重要，因為它讓 verification 不再只是「做不做得到」，而是「在做不到 exact 的時候，我還能保住哪一種結論」。</p>
 
 

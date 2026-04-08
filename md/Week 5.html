@@ -3084,15 +3084,16 @@ s = a + b
 <p>這一點讓我對 formal verification 的價值更有感。它不是把 simulation 再跑大一點，而是把問題改寫成「所有可達狀態中，是否存在 violation」。一旦問題被寫成這樣，就不再是抽樣品質的問題，而是數學上的存在性問題。這種差別真的很本質。</p>
 <h3 id="some-words-about-gv">Some words about GV<a class="headerlink" href="#some-words-about-gv" title="Permanent link"></a></h3>
 <p>我這次有真的進去看 GV 目前能做到什麼。先用 <code>./gv</code> 啟動之後，<code>help</code> 可以看到 BDD 相關指令，也可以看到 prove commands，像是 <code>PINITialstate</code>、<code>PTRansrelation</code>、<code>PIMAGe</code>、<code>PCHECKProperty</code>。光是看到這些指令名稱，我就比較能把整個 BDD-based assertion checking 的流程在腦中串起來：先有 initial state，再有 transition relation，接著做 image，最後再檢查 property。</p>
-<p>不過我也很明確感受到，工具的「介面存在」不代表「整套功能在我這份環境裡已經完整可用」。我去看了目前工作樹裡的 <code>gv/src/prove/proveBdd.cpp</code>，裡面的 <code>buildPInitialState()</code>、<code>buildPTransRelation()</code>、<code>buildPImage()</code>、<code>runPCheckProperty()</code> 目前都還是 <code>TODO</code>。這件事對我來說反而很有幫助，因為它逼我不要把指令名字誤認成已完成的演算法。</p>
+<p>不過我也很明確感受到，工具的「介面存在」不代表「每一條路徑都已經可用」。我這次先修掉了一個真的屬於小 bug 的地方：<code>rand sim</code> 會在產生 <code>.sim_main.cpp</code> 之後去編 CXXRTL testbench，但它原本信任 bundled <code>yosys-config --datdir</code> 回傳的 include 路徑；偏偏這台機器實際被 GV 呼叫的是 cache 裡那份 Yosys，而那份 <code>yosys-config</code> 又把 datdir 寫成 <code>/usr/local/share/yosys</code>，最後就把 <code>cxxrtl_vcd.h</code> include 到錯的地方。我後來去改了 <code>gv/src/ext/sim.cc</code>，讓它優先從 <code>GV_YOSYS_BIN_PATH</code> 附近找真的存在 <code>backends/cxxrtl/cxxrtl_vcd.h</code> 的 include root，並在 <code>g++</code> 編譯失敗時直接停止，不再硬跑 <code>./.tb</code>。</p>
+<p>但另一條我真正想用來做 BDD assertion checking 的 prove 路還是沒有完成。我去看了目前工作樹裡的 <code>gv/src/prove/proveBdd.cpp</code>，裡面的 <code>buildPInitialState()</code>、<code>buildPTransRelation()</code>、<code>buildPImage()</code>、<code>runPCheckProperty()</code> 目前都還是 <code>TODO</code>。這件事對我來說反而很有幫助，因為它逼我不要把指令名字誤認成已完成的演算法，也提醒我這次修好的只是 simulation 支線，不是整套 symbolic proof engine。</p>
 <p>我還滿喜歡頁面裡提到的一個態度：安裝問題可以先用 AI 幫忙處理，但如果只是環境 local fix，就不要隨便推回 remote；真的做出通用修正，再開 branch / PR。這種做法很合理，因為 toolchain 問題常常是環境特例，如果沒分清楚，真的很容易把自己的 workaround 當成大家都需要的 patch。</p>
 <p>做完這段之後，我對 GV 的感覺不是「它是個黑盒工具」，而是「它是一個正在演進中的開源實驗場」。這樣看之後，我反而比較不怕讀它的 source 了，因為我知道自己不是在偷看神祕內部機制，而是在理解一套本來就鼓勵使用者參與完善的工具。</p>
 <h3 id="lets-do-some-experiments-make-sure-you-have-successfully-installed-gv-and-be-able-to-execute-the-following-script">Let’s do some experiments. Make sure you have successfully installed GV and be able to execute the following script&hellip;<a class="headerlink" href="#lets-do-some-experiments-make-sure-you-have-successfully-installed-gv-and-be-able-to-execute-the-following-script" title="Permanent link"></a></h3>
-<p>這一段我有照著目前環境去試。<code>./gv</code> 本身可以正常啟動，<code>help</code> 也能列出 prove commands，所以至少主程式和基本命令列互動是活的。我也能成功 <code>cirread -v ./designs/V3/traffic/traffic.v</code>，代表 <code>trafficLight</code> 這個例子不是只停在文件裡，而是真的可以被目前這份 GV 讀進來。</p>
-<p>但是當我照著頁面上的流程去跑 <code>rand sim -sim 5 -rst_n reset -v</code> 時，這台環境會卡在 CXXRTL 的 header 缺失，錯誤訊息裡很明確地出現 <code>fatal error: backends/cxxrtl/cxxrtl_vcd.h: No such file or directory</code>。這讓我知道目前這裡不是「命令打錯」，而是 simulation 這條支線還沒補齊依賴。這個觀察我覺得很值得記下來，因為它比單純寫「模擬沒跑出來」更有資訊量。</p>
-<p>另一方面，我也試著去理解 BDD assertion checker 這條路的入口。從 <code>help</code> 看得到 prove commands，從 source 也看得到介面和 command parsing 已經在，但真正的 BDD 演算法核心還沒有補完。所以就這一週來說，我比較誠實的結論是：我已經能把 workflow 和設計意圖看懂，也能確認工具現況，但我不能假裝自己已經在這台機器上完整跑通 BDD-based assertion checking。</p>
-<p>這個經驗反而讓我覺得很真實。因為實際做 formal tool 的時候，本來就常常不是「理論會了，工具就一次跑通」，而是要同時面對演算法、介面、依賴、build system。把這些卡點一起記錄下來，我覺得比只貼成功畫面更像真的做過實驗。</p>
-<div class="collapse-code"><input checked="checked" id="__collapse1" name="__collapse1" type="checkbox" /><div class="highlight"><span class="filename">我在這份環境實際測到的 GV 流程</span><pre><span></span><code>$ ./gv
+<p>這一段我這次不是只照著打指令，而是真的把卡住的地方修掉再重跑。修完 <code>gv/src/ext/sim.cc</code> 之後，<code>./gv</code> 本身可以正常啟動，<code>help</code> 也能列出 prove commands；我也能成功 <code>cirread -v ./designs/V3/traffic/traffic.v</code>，代表 <code>trafficLight</code> 這個例子不是只停在文件裡，而是真的可以被目前這份 GV 讀進來。</p>
+<p>接著我先跑 <code>rand sim -sim 5 -rst_n reset -v</code>，確認 CXXRTL 那條編譯鏈真的被修好。結果這次不再出現 <code>cxxrtl_vcd.h</code> 缺失，而是能直接看到 5 個 cycle 的輸出；其中 <code>time_left</code> 從 reset 後的 <code>0</code>、<code>0</code>，進到 <code>40</code>、<code>39</code>、<code>38</code>，而 <code>p1</code>、<code>p2</code>、<code>p3</code> 都維持 0。這至少證明現在 random simulation 這條路是活的，不是只停在 parser 和 command shell。</p>
+<p>講義原本後面那個 <code>rand sim -sim 10 -cont -v</code>，我也另外試了一下。結果目前這版 GV 不是支援 <code>-cont</code>，而是會直接 crash，所以我這次沒有假裝自己把那整段 script 原封不動跑通。取而代之，我改用單次較長的 <code>rand sim -sim 50 -rst_n reset -output .traffic_sim.txt</code> 來觀察完整一段狀態演進，這樣比較符合目前工具真實能做到的範圍。</p>
+<p>我覺得這個經驗很真實。因為實際做 formal tool 的時候，本來就常常不是「理論會了，工具就一次跑通」，而是要同時面對演算法、介面、依賴、build system。這次我至少把 simulation 支線修到可用，也更清楚地把 prove 支線和 simulation 支線分開了：前者還沒做完，後者現在終於能拿來支撐我這週的觀察。</p>
+<div class="collapse-code"><input checked="checked" id="__collapse1" name="__collapse1" type="checkbox" /><div class="highlight"><span class="filename">我修掉 rand sim 小 bug 後，實際重跑的 GV 流程</span><pre><span></span><code>$ ./gv
 setup&gt; help
 ... 可以看到 PINITialstate / PTRansrelation / PIMAGe / PCHECKProperty ...
 
@@ -3100,7 +3101,28 @@ setup&gt; cirread -v ./designs/V3/traffic/traffic.v
 Converted 0 1-valued FFs and 10 DC-valued FFs.
 
 setup&gt; rand sim -sim 5 -rst_n reset -v
-.sim_main.cpp:7:10: fatal error: backends/cxxrtl/cxxrtl_vcd.h: No such file or directory
+==========================================
+= cycle 1
+==========================================
+time_left= 0
+p3= 0
+p2= 0
+p1= 0
+...
+= cycle 5
+==========================================
+time_left= 38
+p3= 0
+p2= 0
+p1= 0
+
+setup&gt; rand sim -sim 50 -rst_n reset -output .traffic_sim.txt
+# 我另外用較長的單次 simulation 看完整一段狀態演進
+# cycle 44 ~ 49: p3 = 1，代表進入 YELLOW
+# cycle 50: time_left = 60，代表回到 RED 計時
+
+setup&gt; rand sim -sim 1 -cont -v
+# 目前這個選項仍然會 crash，不在這次修補範圍內
 </code></pre></div>
 <div class="code-footer"><label class="expand" for="__collapse1" tabindex="0" title="expand"></label><label class="collapse" for="__collapse1" tabindex="0" title="collapse"></label></div>
 </div>
@@ -3110,10 +3132,11 @@ setup&gt; rand sim -sim 5 -rst_n reset -v
 <p>例如頁面裡提的那句「紅燈之後 60 秒要變綠燈」，這就不是單一時刻的 combinational predicate 可以表達的事。它牽涉到時間、狀態轉移、以及從某個事件開始之後的多步行為。也就是說，它不是 <code>state_is_valid</code> 這種 invariant，而比較像 temporal property。這點讓我很清楚地感受到：不是所有 assertion 都長得像一條 <code>assign p = ...</code>。</p>
 <p>我覺得這一段最重要的提醒，是不要因為有幾條 property output 就誤以為 correctness 已經被完整覆蓋了。<code>p1</code> 和 <code>p2</code> 可以抓到 encoding / range 這類 bug，但它們並沒有直接保證完整的 timing behavior、phase ordering、或 eventual state change。換句話說，它們是有價值的，但它們只覆蓋 correctness 的某一部分。</p>
 <h3 id="what-do-you-see-during-the-random-sim-are-the-properties-correct">What do you see during the “random sim”? Are the properties correct?<a class="headerlink" href="#what-do-you-see-during-the-random-sim-are-the-properties-correct" title="Permanent link"></a></h3>
-<p>如果只看 random simulation 的結果，最容易得到的印象就是：<code>p1</code> 和 <code>p2</code> 都一直是 0，所以好像沒問題。這當然是好現象，因為至少在我實際看到的 trace 上沒有 violation；但這個結論很容易被講得太大。比較精確的說法應該是：在這些被抽到的 pattern 和這些跑到的 cycles 上，我沒有看到 violation。</p>
-<p>真正關鍵的點在於，<code>p1</code> 和 <code>p2</code> 的 raw BDD 不一定會是常數 0。這件事一開始我其實有點卡住，但後來想通了：BDD 如果只是表示 monitor 這個函數，它看到的是整個 state/input 空間，而不是只有 reset 之後真的能走到的那些 states。以 <code>p1</code> 為例，只要 <code>light = 2'b11</code>，它就會是 1；可是這個編碼可能在設計的 transition relation 下根本 unreachable。也就是說，monitor 函數本身不為 0，並不代表設計真的會違反 property。</p>
+<p>我這次修完 <code>rand sim</code> 之後，先用 <code>-sim 5</code> 看短 trace，再用 <code>-sim 50 -output .traffic_sim.txt</code> 看比較完整的一段。從 50-cycle 的結果來看，reset 後系統先進入 <code>GREEN_count = 40</code> 的倒數，所以 cycle 3 會看到 <code>time_left = 40</code>，接著一路遞減到 cycle 43 的 <code>time_left = 0</code>。到了 cycle 44 到 49，<code>p3</code> 會變成 1，對應 <code>light == YELLOW</code>；再到 cycle 50，<code>time_left</code> 變成 <code>60</code>，代表又切回 <code>RED_count</code>。整段 trace 中 <code>p1</code> 和 <code>p2</code> 都維持 0。</p>
+<p>如果只看這次 random simulation，我最直覺的感受當然還是「<code>p1</code> 和 <code>p2</code> 看起來沒問題」。至少在我真的跑到的這 50 個 cycle 裡，沒有看到非法 state encoding，也沒有看到 counter 超過各自顏色上限。比起之前卡在 header 缺失、連 trace 都看不到，這次我至少終於有一段可以拿來討論的真實波形行為了。</p>
+<p>但我還是不敢把這件事直接講成「所以 property 被證明了」。真正關鍵的點在於，<code>p1</code> 和 <code>p2</code> 的 raw BDD 不一定會是常數 0。BDD 如果只是表示 monitor 這個函數，它看到的是整個 state / input 空間，而不是只有 reset 之後真的能走到的那些 states。以 <code>p1</code> 為例，只要 <code>light = 2'b11</code>，它就會是 1；可是這個編碼可能在設計的 transition relation 下根本 unreachable。也就是說，monitor 函數本身不為 0，並不代表設計真的會違反 property。</p>
 <p>這就是為什麼 reachable states 這個概念不能省略。我要檢查的不是 <code>monitor == 0</code> 在所有 assignment 上都成立，而是 <code>monitor == 0</code> 在所有 reachable states 上都成立。從這個角度看，simulation 和 BDD 的角色其實很不一樣：simulation 給我 sample trace，BDD 則是幫我表示整個 state set 和 transition relation，讓我能問「有沒有可達反例」。</p>
-<p>我覺得這一段是這週最核心的轉折。前面幾週我比較像是在學怎麼建 BDD、怎麼看 BDD 大小；到這裡，我第一次很明確地看到 BDD 為什麼會變成 verification 的主角。因為它不只是 compact representation，它更是把「所有 reachable states」這種看起來根本存不下的東西，變成可以實際操作的數學物件。這個轉換真的很震撼。</p>
+<p>我覺得這一段是這週最核心的轉折。前面幾週我比較像是在學怎麼建 BDD、怎麼看 BDD 大小；到這裡，我第一次很明確地看到 BDD 為什麼會變成 verification 的主角。因為它不只是 compact representation，它更是把「所有 reachable states」這種看起來根本存不下的東西，變成可以實際操作的數學物件。這次我把 <code>rand sim</code> 修到能跑，讓我比較能從 simulation trace 和 symbolic proof 的落差去理解這件事，而不是只停在抽象概念。</p>
 
 
 
