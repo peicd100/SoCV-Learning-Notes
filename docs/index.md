@@ -8,9 +8,9 @@
 校系：國立臺灣師範大學資訊工程學系
 學號：41447038S
 ## 目錄
-- [week 1](md/Week 1.md)
-- [week 2](md/Week 2.md)
-- [week 3](md/Week 3.md)
-- [week 4](md/Week 4.md)
-- [week 5](md/Week 5.md)
-- [week 6](md/Week 6.md)
+- [Week 1 02/25](md/Week%201%2002-25.md)
+- [Week 2 03/04](md/Week%202%2003-04.md)
+- [Week 3 03/11](md/Week%203%2003-11.md)
+- [Week 4 03/18](md/Week%204%2003-18.md)
+- [Week 5 03/25](md/Week%205%2003-25.md)
+- [Week 6 04/01](md/Week%206%2004-01.md)
