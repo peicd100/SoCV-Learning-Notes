@@ -2192,6 +2192,10 @@ is now available!
       
         
       
+        
+      
+        
+      
     
     
     
@@ -2695,6 +2699,62 @@ is now available!
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Week%207%2004-08.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Week 7 04/08
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Week%208%2004-15.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Week 8 04/15
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3069,7 +3129,7 @@ b = 4*b2 + 2*b1 + b0
 s = a + b
   = 4*(a2+b2) + 2*(a1+b1) + (a0+b0)
 </code></pre></div>
-<div class="code-footer"><label class="expand" for="__collapse0" tabindex="0" title="expand"></label><label class="collapse" for="__collapse0" tabindex="0" title="collapse"></label></div>
+<div class="code-footer"><label class="expand icon-only" for="__collapse0" tabindex="0"><span class="collapse-code__sr-only">expand</span></label><label class="collapse icon-only" for="__collapse0" tabindex="0"><span class="collapse-code__sr-only">collapse</span></label></div>
 </div>
 <h3 id="any-creative-research-idea">Any creative research idea?<a class="headerlink" href="#any-creative-research-idea" title="Permanent link"></a></h3>
 <p>我現在最想做的一個方向，是 <strong>hybrid DD flow</strong>。直覺上，一個真實設計通常同時有 control logic 和 datapath，如果我硬要整顆設計只用單一 DD 類型，幾乎一定會有一塊很吃虧。所以比較合理的路線，可能是 control 用 BDD、稀疏集合用 ZDD、算術 datapath 用 *BMD，最後再靠明確的 interface 和 compose / abstraction 把它們接起來。</p>
@@ -3124,7 +3184,7 @@ setup&gt; rand sim -sim 50 -rst_n reset -output .traffic_sim.txt
 setup&gt; rand sim -sim 1 -cont -v
 # 目前這個選項仍然會 crash，不在這次修補範圍內
 </code></pre></div>
-<div class="code-footer"><label class="expand" for="__collapse1" tabindex="0" title="expand"></label><label class="collapse" for="__collapse1" tabindex="0" title="collapse"></label></div>
+<div class="code-footer"><label class="expand icon-only" for="__collapse1" tabindex="0"><span class="collapse-code__sr-only">expand</span></label><label class="collapse icon-only" for="__collapse1" tabindex="0"><span class="collapse-code__sr-only">collapse</span></label></div>
 </div>
 <h3 id="what-do-these-properties-mean">What do these properties mean?<a class="headerlink" href="#what-do-these-properties-mean" title="Permanent link"></a></h3>
 <p><code>trafficLight</code> 這個例子裡，我最先注意到的是 <code>p1</code> 和 <code>p2</code> 的性質其實都偏 safety。<code>p1</code> 在檢查 <code>light</code> 這個狀態編碼是不是落在合法值集合 <code>{RED, GREEN, YELLOW}</code> 之外；如果 <code>light</code> 不是這三個之一，<code>p1</code> 就會變成 1。<code>p2</code> 則是在檢查 counter 是否超過當前顏色對應的上限，所以它比較像是「倒數計時不應該越界」。</p>
