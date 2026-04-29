@@ -1,28 +1,3 @@
 啟用多代理模式
-
-
-我把 4/8、4/15 的 pdf 放到教材了，請判斷看看哪裡是 4/8 的範圍，哪裡是 4/15 的範圍
-
-
-以前我是跟你說我給你圖片，你要幫我判斷範圍，現在我希望我跟你說我要幾月幾號的筆記，你會直接幫我在教材中找範圍，你覺得這樣合理嗎。
-
-
-我要之後都改成"我跟你說我要幾月幾號的筆記，你會直接幫我在教材中找範圍並完成筆記"。幫我記到使用者要求中
-
-
-啟用多代理模式
-幫我寫 4/8 、 4/15 的筆記。
-
-
-conda create -n mkdocs_Linux python=3.11 -y
-activate mkdocs_Linux
-conda install pip -y 
-conda install -n mkdocs -y -c conda-forge ffmpeg pyside6
-pip install -r requirements.txt
-conda install git -y
-activate mkdocs_Linux
-mkdocs gh-deploy
-git add .
-git commit -m "PEICD100"
-git branch -M main
-git push -u origin main
+1. 幫我寫 4/22 筆記
+2. 為何 week 6 前面會有"## 06. Introduction to Boolean Satisfiability"標題，week 7 前面有
