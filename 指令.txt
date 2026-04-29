@@ -1,3 +1,9 @@
 啟用多代理模式
 1. 幫我寫 4/22 筆記
-2. 寫完幫我用base執行'mkdocs gh-deploy'推送更新網站。
+2. 寫完幫我用base執行'mkdocs gh-deploy'
+3. 幫我推送到 git
+
+----
+
+
+為何 week 9最後面要寫 references，是老師要求嗎
