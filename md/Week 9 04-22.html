@@ -2652,17 +2652,6 @@ is now available!
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#references-i-used" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        References I Used
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -2788,17 +2777,6 @@ is now available!
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#references-i-used" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        References I Used
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -2873,12 +2851,6 @@ STATS result=UNSAT vars=60 clauses=200 learnts=3 conflicts=5 decisions=4 propaga
 <p>這個小 command 也讓我更理解 SAT solver 實驗該看什麼。<code>result=SAT</code> 或 <code>result=UNSAT</code> 只是終點，真正有學習價值的是過程的形狀。例如 SAT case 沒有 conflict，代表很快找到一組 model；UNSAT case 則有 conflicts、learnts 和更多 propagations，代表 solver 需要透過 learning 把搜尋空間逐步堵住。</p>
 <p>我也注意到，原本 <code>SATSolve DIMACS</code> 的 progress table 只是在 search 前印當下狀態，若直接拿那一列當最終統計，很容易誤讀。因此我保留並更新先前加的 <code>STATS conflicts=...</code> 最終輸出，讓完整 model 版和摘要版都能拿到 solve 之後的數據。</p>
 <p>這次最大的收穫是，讀 MiniSat source code 不只是看懂一個 solver，而是學會尊重既有 abstraction。GV 的 command 層負責互動，<code>MinisatMgr</code> 負責把 GV 世界接到 solver，<code>SolverV</code> 負責 CDCL 內部狀態。我的修改只加在前兩層，沒有破壞第三層，這讓功能夠用，也比較穩。</p>
-<h2 id="references-i-used">References I Used<a class="headerlink" href="#references-i-used" title="Permanent link"></a></h2>
-<ul>
-<li>MiniSat official page: <a href="https://minisat.se/">https://minisat.se/</a></li>
-<li>MiniSat Solver API reference: <a href="https://www.mintlify.com/niklasso/minisat/api/solver">https://www.mintlify.com/niklasso/minisat/api/solver</a></li>
-<li>Revisiting the Learned Clauses Database Reduction Strategies: <a href="https://arxiv.org/abs/1402.1956">https://arxiv.org/abs/1402.1956</a></li>
-</ul>
 
 
 
