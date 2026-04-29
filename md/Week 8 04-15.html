@@ -14,6 +14,8 @@
         <link rel="prev" href="Week%207%2004-08.html">
       
       
+        <link rel="next" href="Week%209%2004-22.html">
+      
       
         
       
@@ -2194,6 +2196,8 @@ is now available!
       
         
       
+        
+      
     
     
     
@@ -2540,18 +2544,6 @@ is now available!
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#07-advanced-sat-techniques" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        07. Advanced SAT Techniques
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="07. Advanced SAT Techniques">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#recap-of-the-modern-sat-algorithm" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2561,8 +2553,8 @@ is now available!
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#decision-ordering-restart-and-incremental-sat" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2572,8 +2564,8 @@ is now available!
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#boolean-constraint-propagation-bcp-aka-logic-implication" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2581,11 +2573,6 @@ is now available!
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2681,6 +2668,34 @@ is now available!
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Week%209%2004-22.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Week 9 04/22
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2715,18 +2730,6 @@ is now available!
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#07-advanced-sat-techniques" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        07. Advanced SAT Techniques
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="07. Advanced SAT Techniques">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#recap-of-the-modern-sat-algorithm" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2736,8 +2739,8 @@ is now available!
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#decision-ordering-restart-and-incremental-sat" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2747,8 +2750,8 @@ is now available!
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#boolean-constraint-propagation-bcp-aka-logic-implication" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2756,11 +2759,6 @@ is now available!
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2866,18 +2864,17 @@ is now available!
 
 
 <h1 id="week-8-0415">Week 8 04/15<a class="headerlink" href="#week-8-0415" title="Permanent link"></a></h1>
-<h2 id="07-advanced-sat-techniques">07. Advanced SAT Techniques<a class="headerlink" href="#07-advanced-sat-techniques" title="Permanent link"></a></h2>
-<h3 id="recap-of-the-modern-sat-algorithm">Recap of the Modern SAT Algorithm<a class="headerlink" href="#recap-of-the-modern-sat-algorithm" title="Permanent link"></a></h3>
+<h2 id="recap-of-the-modern-sat-algorithm">Recap of the Modern SAT Algorithm<a class="headerlink" href="#recap-of-the-modern-sat-algorithm" title="Permanent link"></a></h2>
 <p>我現在回頭看 modern SAT algorithm 的那 13 行 pseudo code，已經不會把它當成一段單純的流程圖了。它其實把整顆 CDCL solver 的核心節奏都寫出來了：先看當前 target 在 BCP 之下會不會立刻矛盾，如果沒有，就進入決策迴圈；每做一個 decision，就做一次 propagation；只要 propagation 撞到 conflict，就進入 conflict analysis、學一條 clause、然後 backtrack 到更有意義的位置。</p>
 <p>我很喜歡這個版本的寫法，因為它非常誠實地告訴我 SAT solver 不是一個神奇黑盒，而是一個反覆在做「猜測、推出、撞牆、學習、重試」的程序。真正讓它厲害的，不是它從不犯錯，而是每次犯錯都會把失敗經驗留下來，讓下一次搜尋不要再白走。</p>
 <p>另一個我很有感的地方，是 solver 的終止條件其實很乾淨。若在 decision level 0 就發生 conflict，代表整個問題 UNSAT；若所有 variables 都被指定完且沒有 conflict，代表找到 SAT model。中間那些學習、回跳、重啟，看起來很複雜，但本質上都是在加速這兩個終局判斷。</p>
 <p>這種觀察讓我比較能把 SAT solver 想成一套會自己修正搜尋策略的程序，而不是一棵純粹暴力的 DFS。也因為這樣，後面的 decision ordering、restart 和 BCP 才不再是零散技巧，而是這個主循環裡最重要的三個槓桿。</p>
-<h3 id="decision-ordering-restart-and-incremental-sat">Decision Ordering, Restart and Incremental SAT<a class="headerlink" href="#decision-ordering-restart-and-incremental-sat" title="Permanent link"></a></h3>
+<h2 id="decision-ordering-restart-and-incremental-sat">Decision Ordering, Restart and Incremental SAT<a class="headerlink" href="#decision-ordering-restart-and-incremental-sat" title="Permanent link"></a></h2>
 <p>Decision ordering 這件事對我來說很像在問：如果我現在只能做一個猜測，哪個變數最值得先猜？因為 SAT solving 的成本不是只看猜了多少次，而是看這些猜測會不會快速引發 propagation，或者快速逼出 conflict。若我總是先猜到對整體結構最有影響的 variable，搜尋樹通常會淺很多。</p>
 <p>Restart 則讓我意識到，一個 solver 並不是在同一棵樹上死撐到底才叫聰明。若目前這條搜尋路徑一直在某個局部結構附近打轉，適時重啟其實是在保留 learned clauses 的前提下換一個入口重來。也就是說，restart 不是把進度清空，而是把「已學到的知識」保留下來，把「暫時不好的 trail」丟掉。這種做法比我原本直覺中那種硬走到底的暴力 DFS 成熟很多。</p>
 <p>Incremental SAT 又是另一個我很喜歡的觀念，因為它幾乎就是 verification workflow 的日常。真實問題很少是只解一次就結束，我常常會解一串彼此高度相關的 instance，例如同一個網路多加一條 constraint、同一個 BMC frame 再往後展一層、或同一個 design 換另一個 monitor。如果 solver 每次都從零開始，那很多前面學到的 clause 與活動度資訊都浪費掉了。</p>
 <p>我現在會把這三件事看成同一個方向的不同切面。Decision ordering 在決定我先看哪裡，restart 在決定我什麼時候該換路，incremental SAT 則在決定我哪些舊知識值得帶到下一題。這三個槓桿一起作用，才讓 modern SAT algorithm 不只是正確，而是真的實用。</p>
-<h3 id="boolean-constraint-propagation-bcp-aka-logic-implication">Boolean Constraint Propagation (BCP, aka. Logic Implication)<a class="headerlink" href="#boolean-constraint-propagation-bcp-aka-logic-implication" title="Permanent link"></a></h3>
+<h2 id="boolean-constraint-propagation-bcp-aka-logic-implication">Boolean Constraint Propagation (BCP, aka. Logic Implication)<a class="headerlink" href="#boolean-constraint-propagation-bcp-aka-logic-implication" title="Permanent link"></a></h2>
 <p>如果說 decision 是 solver 主動做的事，那 BCP 就是 solver 對自己決策的即時回應。每當某些 literals 被指定之後，所有 clause 的狀態都會變動。有些 clause 已經滿足，有些還沒決定，但也有一些 clause 會被逼到只剩最後一個 literal 還能為真。這時那個 literal 就不再是自由選擇，而是必須被推導出來。</p>
 <p>我覺得 BCP 最厲害的地方，是它把「一個決策的後果」盡可能往前展開。沒有 BCP，我每做一次 decision 只得到一個 bit 的資訊；有了 BCP，我常常一口氣得到一長串 implication。也就是說，solver 真正探索的不是單點決策，而是決策帶出的 closure。這讓搜尋變得比較像在處理一整片受影響區域，而不是一格一格慢慢試。</p>
 <p>這同時也解釋了為什麼 BCP 幾乎總是 solver 裡最耗時間的一塊。因為每做一次決策、每學一條 clause、每次回跳後重新開始 propagation，solver 都在大量重複問同一個問題：在目前 trail 下，哪些 clause 變成 unit 了？哪些 clause 已經 conflict 了？所以很多 SAT solver 的實際性能，最後不是敗在理論上的 backtracking，而是敗在 BCP 資料結構夠不夠省。</p>
@@ -2940,7 +2937,7 @@ x_{v,c} =
 <span class="s">q -f</span>
 <span class="s">EOF</span>
 </code></pre></div>
-<div class="code-footer"><label class="expand icon-only" for="__collapse0" tabindex="0"><span class="collapse-code__sr-only">expand</span></label><label class="collapse icon-only" for="__collapse0" tabindex="0"><span class="collapse-code__sr-only">collapse</span></label></div>
+<div class="code-footer"><label class="expand" for="__collapse0" tabindex="0" title="expand"></label><label class="collapse" for="__collapse0" tabindex="0" title="collapse"></label></div>
 </div>
 <p>不過我在真的整理數據時，發現目前 GV 這條 DIMACS 路徑有一個很小但很關鍵的問題。內建 MiniSat 會印一張 progress table，可是那一列數值是在真正 <code>search()</code> 之前先印出的，所以如果我直接抄那一列，<code>conflicts</code> 很容易看起來像 0。這會讓實驗表失真。</p>
 <p>因此我這次補了一個很小的修補，只改 <code>gv/src/sat/minisatMgr.cpp</code> 的 <code>solve_dimacs_cnf()</code> 輸出層，讓它在 <code>solve()</code> 結束後再額外印出：</p>
@@ -3015,7 +3012,7 @@ sat_60_4_p65:  SAT,   conflicts=3,  decisions=17,  propagations=417,  elapsed=1.
 unsat_60_4_p35: UNSAT, conflicts=66, decisions=105, propagations=4218, elapsed=2.23s
 unsat_60_4_p65: UNSAT, conflicts=67, decisions=78,  propagations=4404, elapsed=0.59s
 </code></pre></div>
-<div class="code-footer"><label class="expand icon-only" for="__collapse1" tabindex="0"><span class="collapse-code__sr-only">expand</span></label><label class="collapse icon-only" for="__collapse1" tabindex="0"><span class="collapse-code__sr-only">collapse</span></label></div>
+<div class="code-footer"><label class="expand" for="__collapse1" tabindex="0" title="expand"></label><label class="collapse" for="__collapse1" tabindex="0" title="collapse"></label></div>
 </div>
 
 
@@ -3076,6 +3073,24 @@ unsat_60_4_p65: UNSAT, conflicts=67, decisions=78,  propagations=4404, elapsed=0
           </div>
         </a>
       
+      
+        <a
+          href="Week%209%2004-22.html"
+          class="md-footer__link md-footer__link--next"
+          rel="next"
+        >
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Week 9 04/22
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+          </div>
+        </a>
       
     </nav>
   

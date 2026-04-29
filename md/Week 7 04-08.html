@@ -2196,6 +2196,8 @@ is now available!
       
         
       
+        
+      
     
     
     
@@ -2514,18 +2516,6 @@ is now available!
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#06-introduction-to-boolean-satisfiability" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        06. Introduction to Boolean Satisfiability
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="06. Introduction to Boolean Satisfiability">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#recap-bdd-based-verification" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2535,8 +2525,8 @@ is now available!
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#the-counter-example-for-r-rightarrow-p-is-r-land-neg-p" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2546,8 +2536,8 @@ is now available!
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#boolean-satisfiability-sat-problem" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2555,11 +2545,6 @@ is now available!
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2733,6 +2718,34 @@ is now available!
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="Week%209%2004-22.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Week 9 04/22
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2767,18 +2780,6 @@ is now available!
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#06-introduction-to-boolean-satisfiability" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        06. Introduction to Boolean Satisfiability
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="06. Introduction to Boolean Satisfiability">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#recap-bdd-based-verification" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2788,8 +2789,8 @@ is now available!
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#the-counter-example-for-r-rightarrow-p-is-r-land-neg-p" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2799,8 +2800,8 @@ is now available!
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#boolean-satisfiability-sat-problem" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2808,11 +2809,6 @@ is now available!
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2968,13 +2964,12 @@ is now available!
 
 
 <h1 id="week-7-0408">Week 7 04/08<a class="headerlink" href="#week-7-0408" title="Permanent link"></a></h1>
-<h2 id="06-introduction-to-boolean-satisfiability">06. Introduction to Boolean Satisfiability<a class="headerlink" href="#06-introduction-to-boolean-satisfiability" title="Permanent link"></a></h2>
-<h3 id="recap-bdd-based-verification">Recap: BDD-Based Verification<a class="headerlink" href="#recap-bdd-based-verification" title="Permanent link"></a></h3>
+<h2 id="recap-bdd-based-verification">Recap: BDD-Based Verification<a class="headerlink" href="#recap-bdd-based-verification" title="Permanent link"></a></h2>
 <p>我覺得這一週最重要的轉折，是我開始正面承認前面那條 BDD-based verification 路線雖然很漂亮，但它不是沒有代價。前幾週我一直在享受 BDD 的 canonical representation 和 shared subgraph 帶來的壓縮效果，可是一旦問題變成 sequential system 的 reachable states，我就很難再用「BDD 很會壓」這句話輕鬆帶過去。因為 reachable state set 的本質還是可能指數成長，而 BDD 只是讓我有機會把它壓小，不是保證一定壓得住。</p>
 <p>如果把 safety property 寫成 <code>R ⟹ P</code>，那前面的做法其實很直覺，我先把 reachable states <span class="arithmatex">\(R\)</span> 算出來，再去檢查這個集合是不是完全落在 property <span class="arithmatex">\(P\)</span> 裡。問題在於，真正困難的常常不是 <code>P</code> 本身，而是 <code>R</code>。也就是說，我不是輸在 assertion 寫不出來，而是輸在「所有真的走得到的 state」太多，BDD 即使再會共享，還是可能被 register 數量拖到 memory explosion。</p>
 <p>這裡我第一次很明確感受到，verification 的瓶頸有時候根本不在 specification，而在 state exploration。如果我一開始就把所有 reachable states 當成必經之路，那我其實是在逼自己先解一個更大的問題，再回頭證明 property。這種做法當然完整，可是也很可能太貴。</p>
 <p>這一段讓我有個很重要的 mindset change。以前我會覺得 formal verification 的厲害之處在於「它可以看全部」。現在我比較願意把它理解成「它會先把我要回答的問題換成一個更可計算的形式」。如果前一種形式太大，就要找另一種形式，不然再漂亮的資料結構也撐不起來。</p>
-<h3 id="the-counter-example-for-r-rightarrow-p-is-r-land-neg-p">The counter-example for <span class="arithmatex">\(R \Rightarrow P\)</span> is <span class="arithmatex">\(R \land \neg P\)</span><a class="headerlink" href="#the-counter-example-for-r-rightarrow-p-is-r-land-neg-p" title="Permanent link"></a></h3>
+<h2 id="the-counter-example-for-r-rightarrow-p-is-r-land-neg-p">The counter-example for <span class="arithmatex">\(R \Rightarrow P\)</span> is <span class="arithmatex">\(R \land \neg P\)</span><a class="headerlink" href="#the-counter-example-for-r-rightarrow-p-is-r-land-neg-p" title="Permanent link"></a></h2>
 <p>當我把 <code>R ⟹ P</code> 換成反證法來看，整個問題突然清楚很多。要證明一個 property 成立，其實不一定要直接做「正面證明」；我只要證明它的 counterexample 不存在就好。對 <code>R ⟹ P</code> 來說，counterexample 正好就是：</p>
 <pre class="arithmatex">\[
 R \land \neg P
@@ -2982,7 +2977,7 @@ R \land \neg P
 <p>這個式子對我來說很有力量，因為它把 verification 問題從「證明全部都對」改寫成「找不找得到一個會出錯的 assignment」。一旦問題被改寫成 existence question，我馬上就可以把它和 satisfiability 連起來看。如果 <code>R \land \neg P</code> 可滿足，代表真的存在一個 reachable bad state；如果它不可滿足，代表 reachable state set 根本碰不到 violation。</p>
 <p>我很喜歡這個改寫，因為它讓「沒有反例」變成一個可運算的目標。從這裡往下走，不管我要用 BDD、SAT、BMC 還是其他 symbolic method，本質上都在問同一件事：是不是存在一個 assignment 或一條 trace 讓 violation 成立。也就是說，形式驗證真正強的地方不是只會說「對」或「錯」，而是它把 correctness 問題翻成一個可以被工具求解的存在性問題。</p>
 <p>這也解釋了為什麼 SAT 會在這裡自然登場。因為當我已經把目標寫成「某個布林條件是否可滿足」，那下一步幾乎就是在問 Boolean satisfiability 了。這個轉換讓我覺得 SAT 不是突然插進來的新主題，而是前面 reachability 論述一路推下來的自然結果。</p>
-<h3 id="boolean-satisfiability-sat-problem">Boolean Satisfiability (SAT) Problem<a class="headerlink" href="#boolean-satisfiability-sat-problem" title="Permanent link"></a></h3>
+<h2 id="boolean-satisfiability-sat-problem">Boolean Satisfiability (SAT) Problem<a class="headerlink" href="#boolean-satisfiability-sat-problem" title="Permanent link"></a></h2>
 <p>SAT 的形式定義其實比我原本想像得樸素很多。給定一個布林網路</p>
 <pre class="arithmatex">\[
 F : \mathbb{B}^n \mapsto \mathbb{B},
